@@ -648,19 +648,83 @@ require('lazy').setup({
     dependencies = { { 'nvim-tree/nvim-web-devicons' } },
   },
   { -- You can easily change to a different colorscheme.
+    --------------------------------------------------------------------------------------
+    -- 'ellisonleao/gruvbox.nvim',
+    -- priority = 1000, -- Ensure it loads before other plugins
+    -- config = function()
+    --   -- Optional: Configure gruvbox before loading
+    --   require('gruvbox').setup {
+    --     terminal_colors = true, -- add neovim terminal colors
+    --     undercurl = true,
+    --     underline = true,
+    --     bold = true,
+    --     italic = {
+    --       strings = false,
+    --       emphasis = false,
+    --       comments = false,
+    --       operators = false,
+    --       folds = false,
+    --     },
+    --     strikethrough = true,
+    --     invert_selection = false,
+    --     invert_signs = false,
+    --     invert_tabline = false,
+    --     invert_intend_guides = false,
+    --     inverse = true, -- invert background for search, highlights, statusline and errors
+    --     contrast = 'hard', -- can be "hard", "soft" or empty string
+    --     palette_overrides = {},
+    --     overrides = {},
+    --     dim_inactive = true,
+    --     transparent_mode = true,
+    --   }
+    --   vim.cmd 'colorscheme gruvbox'
+    -- end,
     --
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
+    --------------------------------------------------------------------------------------
+    'rebelot/kanagawa.nvim',
+    priority = 1000, -- Ensure it loads before other plugins
     config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require('tokyonight').setup {
-        styles = {
-          comments = { italic = false }, -- Disable italics in comments
+      require('kanagawa').setup {
+        compile = false, -- enable compiling the colorscheme
+        undercurl = true, -- enable undercurls
+
+        -- 1. KILL ALL ITALICS
+        commentStyle = { italic = false },
+        keywordStyle = { italic = false },
+        statementStyle = { bold = true, italic = false },
+        functionStyle = { italic = false },
+        typeStyle = { italic = false },
+
+        -- 2. DIM INACTIVE WINDOWS
+        dimInactive = true,
+
+        transparent = false,
+        terminalColors = true,
+
+        -- 3. THEME SELECTION
+        theme = 'wave', -- "wave" is the default. Try "dragon" for a darker background!
+        background = {
+          dark = 'wave',
+          light = 'lotus',
         },
       }
-      -- Load the colorscheme here.
-      vim.cmd.colorscheme 'tokyonight-night'
+
+      -- Load the colorscheme
+      vim.cmd 'colorscheme kanagawa'
     end,
+    --------------------------------------------------------------------------------------
+    -- 'folke/tokyonight.nvim',
+    -- priority = 1000, -- Make sure to load this before all the other start plugins.
+    -- config = function()
+    --   ---@diagnostic disable-next-line: missing-fields
+    --   require('tokyonight').setup {
+    --     styles = {
+    --       comments = { italic = false }, -- Disable italics in comments
+    --     },
+    --   }
+    --   -- Load the colorscheme here.
+    --   vim.cmd.colorscheme 'tokyonight-night'
+    -- end,
   },
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
