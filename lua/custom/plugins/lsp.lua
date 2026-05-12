@@ -148,7 +148,15 @@ return {
   {
     'nvim-java/nvim-java',
     config = function()
-      require('java').setup()
+      require('java').setup {
+        spring_boot_tools = {
+          enable = false,
+        },
+        -- Uncomment if springboot is required
+        -- jdk = {
+        --   args = { '-XX:+UnlockExperimentalVMOptions' },
+        -- },
+      }
       vim.lsp.enable 'jdtls'
     end,
   },
