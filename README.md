@@ -239,3 +239,16 @@ sudo pacman -S --noconfirm --needed gcc make git ripgrep fd unzip neovim
 ```
 </details>
 
+## Personal Notes
+Use NeoVim version 11.5.
+
+Installing
+```
+curl -LO https://github.com/neovim/neovim/releases/download/v0.11.5/nvim-linux-x86_64.tar.gz
+sudo rm -rf /opt/nvim-linux-x86_64
+sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
+```
+Add to .zshrc
+```
+export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+```
