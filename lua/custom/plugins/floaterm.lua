@@ -6,7 +6,7 @@ return {
   cmd = 'FloatermToggle',
 
   keys = {
-    { '<leader>t', '<cmd>FloatermToggle<CR>', mode = { 'n' }, desc = '[T]erminal' },
+    { '<leader>ot', '<cmd>FloatermToggle<CR>', mode = { 'n' }, desc = '[T]erminal' },
   },
 
   opts = {
