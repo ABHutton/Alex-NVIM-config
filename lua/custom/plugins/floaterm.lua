@@ -21,7 +21,7 @@ return {
       sidebar = nil,
 
       term = function(buf)
-        vim.keymap.set({ 't' }, '<Esc><Esc>', '<cmd>FloatermToggle<CR>', { buffer = buf, desc = 'Close Terminal' })
+        vim.keymap.set({ 'n', 't' }, '<Esc><Esc>', '<cmd>FloatermToggle<CR>', { buffer = buf, desc = 'Close Terminal' })
 
         vim.keymap.set({ 't' }, '<C-p>', function()
           require('floaterm.api').cycle_term_bufs 'prev'
