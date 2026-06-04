@@ -48,46 +48,6 @@ return {
     },
   },
   {
-    'nvimdev/dashboard-nvim',
-    event = 'VimEnter',
-    config = function()
-      require('dashboard').setup {
-        theme = 'hyper',
-        shortcut_type = 'number',
-        config = {
-          week_header = {
-            enable = true,
-          },
-          shortcut = {
-            { desc = '󰊳 Update', group = '@property', action = 'Lazy update', key = 'u' },
-            {
-              icon = ' ',
-              icon_hl = '@variable',
-              desc = 'Files',
-              group = 'Label',
-              action = 'Telescope find_files',
-              key = 'f',
-            },
-            {
-              desc = ' KeyMaps',
-              group = 'DiagnosticHint',
-              action = 'Telescope keymaps',
-              key = 'k',
-            },
-            {
-              desc = ' Grep Search',
-              group = 'Number',
-              action = 'Telescope live_grep',
-              key = 'g',
-            },
-          },
-          disable_move = true,
-        },
-      }
-    end,
-    dependencies = { { 'nvim-tree/nvim-web-devicons' } },
-  },
-  {
     'folke/tokyonight.nvim',
     priority = 1000,
     config = function()
