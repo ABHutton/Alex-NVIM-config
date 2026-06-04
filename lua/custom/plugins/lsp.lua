@@ -14,7 +14,6 @@ return {
       { 'mason-org/mason.nvim', opts = {} },
       'mason-org/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
-      { 'j-hui/fidget.nvim', opts = {} },
       'saghen/blink.cmp',
     },
     config = function()
@@ -115,6 +114,40 @@ return {
           end,
         },
       }
+
+      local protocol = require 'vim.lsp.protocol'
+      vim.lsp.handlers['window/showMessage'] = function(err, result, ctx)
+        if err then
+          if err.code ~= protocol.ErrorCodes.ContentModified then
+            local client = vim.lsp.get_client_by_id(ctx.client_id)
+            local client_name = client and client.name or ('client_id=' .. ctx.client_id)
+            vim.notify(
+              client_name .. ': ' .. tostring(err.code) .. ': ' .. err.message,
+              vim.log.levels.ERROR,
+              { title = 'LSP' }
+            )
+          end
+          return
+        end
+        local client = vim.lsp.get_client_by_id(ctx.client_id)
+        local client_name = client and client.name or ('id=' .. ctx.client_id)
+        if not client then
+          vim.notify(
+            ('LSP[%s] client has shut down after sending the message'):format(client_name),
+            vim.log.levels.ERROR,
+            { title = 'LSP' }
+          )
+          return result
+        end
+        local level = ({
+          [protocol.MessageType.Error] = vim.log.levels.ERROR,
+          [protocol.MessageType.Warning] = vim.log.levels.WARN,
+          [protocol.MessageType.Info] = vim.log.levels.INFO,
+          [protocol.MessageType.Log] = vim.log.levels.INFO,
+        })[result.type] or vim.log.levels.INFO
+        vim.notify(result.message, level, { title = client_name })
+        return result
+      end
 
       local capabilities = require('blink.cmp').get_lsp_capabilities()
 
