@@ -121,6 +121,14 @@ return {
         border = true,
       },
     },
+    lazygit = {
+      enabled = true,
+      configure = true,
+      config = {
+        os = { editPreset = 'nvim-remote' },
+        gui = { nerdFontsVersion = '3' },
+      },
+    },
     picker = {
       enabled = true,
       ui_select = true,
@@ -225,6 +233,10 @@ return {
     vim.keymap.set('n', '<leader>ot', function()
       snacks.terminal.toggle()
     end, { desc = '[T]erminal' })
+
+    vim.keymap.set('n', '<leader>og', function()
+      snacks.lazygit.open()
+    end, { desc = 'Lazy[G]it' })
 
     vim.keymap.set('n', '\\', function()
       local current = picker.current

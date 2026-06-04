@@ -137,6 +137,17 @@ Weekday headers in the dashboard are embedded ASCII art in config — **figlet i
 
 Install per [Cursor](https://cursor.com/) documentation. The executable must be on `PATH` as `cursor-agent` (or set `cmd` in `require('cursor-agent').setup({ ... })`).
 
+### LazyGit (snacks.nvim)
+
+| Dependency | Why |
+|------------|-----|
+| [lazygit](https://github.com/jesseduffield/lazygit) | Required for `<leader>og`; Snacks wraps the CLI |
+
+```sh
+sudo apt install lazygit
+# or: go install github.com/jesseduffield/lazygit@latest
+```
+
 ---
 
 ## Not loaded by default
@@ -166,6 +177,7 @@ fdfind --version   # or fd --version
 pokemon-colorscripts -r --no-title | head
 deno --version     # if using peek
 cursor-agent --help   # if using Cursor Agent integration
+lazygit --version     # if using LazyGit integration
 ```
 
 ---
