@@ -43,6 +43,7 @@ return {
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
         { '<leader>r', group = '[R]ubocop' },
         { '<leader>o', group = '[O]pen' },
+        { '<leader>a', group = '[A]gent' },
       },
     },
   },
