@@ -5,7 +5,7 @@ This document lists everything you need on a **new machine** beyond cloning this
 ## Quick start
 
 1. Install the [core dependencies](#core-required).
-2. Install any [optional stacks](#optional-by-feature) you use (Ruby, Java, markdown preview, dashboard, Cursor Agent).
+2. Install any [optional stacks](#optional-by-feature) you use (Ruby, Java, markdown preview, Cursor Agent).
 3. Clone this config into `~/.config/nvim` (or `$XDG_CONFIG_HOME/nvim`).
 4. Start Neovim and run `:Lazy` — wait for plugins and Mason tools to finish installing.
 5. Run `:checkhealth kickstart` and `:checkhealth snacks`.
@@ -103,32 +103,6 @@ Ensure `deno` is on your `PATH`, then run `:Lazy` so peek.nvim can build.
 
 To use a browser instead of webview, change `app` in `lua/custom/plugins/markdown.lua` (e.g. `app = 'browser'`).
 
-### Dashboard Pokémon (snacks.nvim)
-
-| Dependency | Why |
-|------------|-----|
-| [pokemon-colorscripts](https://gitlab.com/phoneybadger/pokemon-colorscripts) | Right pane on the startup dashboard |
-| `python3` | Runs the colorscript script |
-
-User install (no sudo):
-
-```sh
-git clone https://gitlab.com/phoneybadger/pokemon-colorscripts.git /tmp/pokemon-colorscripts
-
-INSTALL_DIR="$HOME/.local/opt/pokemon-colorscripts"
-BIN_DIR="$HOME/.local/bin"
-mkdir -p "$INSTALL_DIR" "$BIN_DIR"
-
-cp -r /tmp/pokemon-colorscripts/colorscripts "$INSTALL_DIR/"
-cp /tmp/pokemon-colorscripts/pokemon-colorscripts.py /tmp/pokemon-colorscripts/pokemon.json "$INSTALL_DIR/"
-chmod +x "$INSTALL_DIR/pokemon-colorscripts.py"
-ln -sf "$INSTALL_DIR/pokemon-colorscripts.py" "$BIN_DIR/pokemon-colorscripts"
-```
-
-Ensure `~/.local/bin` is on your `PATH` (common in `.profile` / `.zshrc`). The dashboard also checks `~/.local/bin/pokemon-colorscripts` directly if Neovim’s shell has a minimal `PATH`.
-
-Weekday headers in the dashboard are embedded ASCII art in config — **figlet is not required**.
-
 ### Cursor Agent (cursor-agent.nvim)
 
 | Dependency | Why |
@@ -174,7 +148,6 @@ From a shell:
 git --version
 rg --version
 fdfind --version   # or fd --version
-pokemon-colorscripts -r --no-title | head
 deno --version     # if using peek
 cursor-agent --help   # if using Cursor Agent integration
 lazygit --version     # if using LazyGit integration

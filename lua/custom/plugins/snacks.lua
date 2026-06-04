@@ -58,22 +58,63 @@ local day_headers = {
 ╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝ ╚═╝  ╚═╝   ╚═╝]],
 }
 
-local function day_header()
-  return day_headers[os.date '%A'] or day_headers.Monday
-end
-
-local function pokemon_cmd()
-  local candidates = {
-    vim.fn.exepath 'pokemon-colorscripts',
-    vim.fs.joinpath(vim.env.HOME, '.local', 'bin', 'pokemon-colorscripts'),
-    '/usr/local/bin/pokemon-colorscripts',
-  }
-  for _, path in ipairs(candidates) do
-    if path ~= '' and vim.fn.executable(path) == 1 then
-      return ('%s -r --no-title; sleep .1'):format(path)
+--- Strip figlet's per-row leading spaces so the glyph block shares one left edge.
+local function strip_figlet_lines(art)
+  local lines = vim.split(art:gsub('\n$', ''), '\n', { plain = true })
+  local min_lead = math.huge
+  for _, line in ipairs(lines) do
+    local lead = line:find('%S')
+    if lead then
+      min_lead = math.min(min_lead, lead - 1)
     end
   end
-  return 'echo "Install pokemon-colorscripts: see snacks.nvim dashboard docs"; sleep .1'
+  if min_lead == math.huge then
+    min_lead = 0
+  end
+  for i, line in ipairs(lines) do
+    local lead = line:find('%S')
+    if lead then
+      lines[i] = line:sub(lead - min_lead)
+    end
+  end
+  return lines
+end
+
+local function max_day_header_width()
+  local max_w = 0
+  for _, art in pairs(day_headers) do
+    for _, line in ipairs(strip_figlet_lines(art)) do
+      max_w = math.max(max_w, vim.api.nvim_strwidth(line))
+    end
+  end
+  return max_w
+end
+
+local day_header_width = max_day_header_width()
+
+--- Pad figlet rows to a shared width; use the deepest left pad so tapered rows line up.
+local function layout_figlet_lines(lines, dashboard_width)
+  local max_w = 0
+  for _, line in ipairs(lines) do
+    max_w = math.max(max_w, vim.api.nvim_strwidth(line))
+  end
+  local max_pl = 0
+  for _, line in ipairs(lines) do
+    local extra = max_w - vim.api.nvim_strwidth(line)
+    max_pl = math.max(max_pl, math.floor(extra / 2))
+  end
+  for i, line in ipairs(lines) do
+    local extra = max_w - vim.api.nvim_strwidth(line)
+    local pl = math.min(max_pl, extra)
+    lines[i] = string.rep(' ', pl) .. line .. string.rep(' ', extra - pl)
+  end
+  local block_pad = dashboard_width - max_w
+  local bl = math.floor(block_pad / 2)
+  local br = block_pad - bl
+  for i, line in ipairs(lines) do
+    lines[i] = string.rep(' ', bl) .. lines[i] .. string.rep(' ', br)
+  end
+  return table.concat(lines, '\n')
 end
 
 return {
@@ -96,20 +137,17 @@ return {
     },
     dashboard = {
       enabled = true,
+      width = day_header_width,
+      formats = {
+        header = { '%s', align = 'left' },
+      },
       sections = {
-        function()
-          return { header = day_header(), padding = 2 }
+        function(self)
+          local lines = strip_figlet_lines(day_headers[os.date '%A'] or day_headers.Monday)
+          return { header = layout_figlet_lines(lines, self.opts.width), padding = 2 }
         end,
-        { section = 'keys', gap = 1, padding = 1 },
-        { section = 'startup' },
-        {
-          section = 'terminal',
-          cmd = pokemon_cmd(),
-          random = 10,
-          pane = 2,
-          indent = 4,
-          height = 30,
-        },
+        { section = 'keys', gap = 1 },
+        { section = 'startup', padding = { 0, 2 } },
       },
     },
     terminal = {
@@ -132,6 +170,9 @@ return {
     picker = {
       enabled = true,
       ui_select = true,
+      layout = {
+        preset = 'telescope',
+      },
       sources = {
         files = file_picker_opts(),
         explorer = file_picker_opts(),
