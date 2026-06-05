@@ -58,7 +58,7 @@ local day_headers = {
 ╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝ ╚═╝  ╚═╝   ╚═╝]],
 }
 
---- Strip figlet's per-row leading spaces so the glyph block shares one left edge.
+--- Strip shared leading whitespace; return per-row extra indent removed (for layout restore).
 local function strip_figlet_lines(art)
   local lines = vim.split(art:gsub('\n$', ''), '\n', { plain = true })
   local min_lead = math.huge
@@ -71,19 +71,24 @@ local function strip_figlet_lines(art)
   if min_lead == math.huge then
     min_lead = 0
   end
+  local stripped = {}
   for i, line in ipairs(lines) do
     local lead = line:find '%S'
     if lead then
+      stripped[i] = lead - 1 - min_lead
       lines[i] = line:sub(lead - min_lead)
+    else
+      stripped[i] = 0
     end
   end
-  return lines
+  return lines, stripped
 end
 
 local function max_day_header_width()
   local max_w = 0
   for _, art in pairs(day_headers) do
-    for _, line in ipairs(strip_figlet_lines(art)) do
+    local lines = strip_figlet_lines(art)
+    for _, line in ipairs(lines) do
       max_w = math.max(max_w, vim.api.nvim_strwidth(line))
     end
   end
@@ -93,7 +98,7 @@ end
 local day_header_width = max_day_header_width()
 
 local function figlet_leading_spaces(line)
-  local lead = line:find('%S')
+  local lead = line:find '%S'
   return lead and (lead - 1) or 0
 end
 
@@ -103,13 +108,11 @@ local function uses_thursday_layout(raw_art)
   if #lines < 6 then
     return false
   end
-  return figlet_leading_spaces(lines[1]) == 0
-    and figlet_leading_spaces(lines[2]) == 0
-    and figlet_leading_spaces(lines[3]) == 3
+  return figlet_leading_spaces(lines[1]) == 0 and figlet_leading_spaces(lines[2]) == 0 and figlet_leading_spaces(lines[3]) == 3
 end
 
 --- Pad figlet rows to a shared width before centering in the dashboard.
-local function layout_figlet_lines(lines, dashboard_width, raw_art)
+local function layout_figlet_lines(lines, dashboard_width, raw_art, stripped)
   local max_w = 0
   for _, line in ipairs(lines) do
     max_w = math.max(max_w, vim.api.nvim_strwidth(line))
@@ -130,7 +133,8 @@ local function layout_figlet_lines(lines, dashboard_width, raw_art)
     local center_rows = math.floor(#lines * 3 / 5)
     for i, line in ipairs(lines) do
       local extra = max_w - vim.api.nvim_strwidth(line)
-      local pl = i <= center_rows and math.floor(extra / 2) or 0
+      local pl = (i <= center_rows and math.floor(extra / 2) or 0) + (stripped[i] or 0)
+      pl = math.min(pl, extra)
       lines[i] = string.rep(' ', pl) .. line .. string.rep(' ', extra - pl)
     end
   end
@@ -170,8 +174,8 @@ return {
       sections = {
         function(self)
           local raw_art = day_headers[os.date '%A'] or day_headers.Monday
-          local lines = strip_figlet_lines(raw_art)
-          return { header = layout_figlet_lines(lines, self.opts.width, raw_art), padding = 2 }
+          local lines, stripped = strip_figlet_lines(raw_art)
+          return { header = layout_figlet_lines(lines, self.opts.width, raw_art, stripped), padding = 2 }
         end,
         { section = 'keys', gap = 1 },
         { section = 'startup', padding = { 0, 2 } },
