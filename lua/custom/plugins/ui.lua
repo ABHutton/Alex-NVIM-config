@@ -76,4 +76,8 @@ return {
       end
     end,
   },
+  {
+    'sphamba/smear-cursor.nvim',
+    opts = {},
+  },
 }
