@@ -55,6 +55,7 @@ return {
       ---@diagnostic disable-next-line: missing-fields
       require('tokyonight').setup {
         transparent = true,
+        terminal_colors = true,
         styles = {
           comments = { italic = false },
           sidebars = 'transparent',
