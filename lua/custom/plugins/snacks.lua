@@ -185,6 +185,7 @@ return {
       enabled = true,
       win = {
         style = 'terminal',
+        position = 'float',
         width = 0.9,
         height = 0.9,
         border = true,
