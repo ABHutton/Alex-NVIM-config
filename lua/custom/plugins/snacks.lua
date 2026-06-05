@@ -63,7 +63,7 @@ local function strip_figlet_lines(art)
   local lines = vim.split(art:gsub('\n$', ''), '\n', { plain = true })
   local min_lead = math.huge
   for _, line in ipairs(lines) do
-    local lead = line:find('%S')
+    local lead = line:find '%S'
     if lead then
       min_lead = math.min(min_lead, lead - 1)
     end
@@ -72,7 +72,7 @@ local function strip_figlet_lines(art)
     min_lead = 0
   end
   for i, line in ipairs(lines) do
-    local lead = line:find('%S')
+    local lead = line:find '%S'
     if lead then
       lines[i] = line:sub(lead - min_lead)
     end
@@ -154,8 +154,8 @@ return {
       enabled = true,
       win = {
         style = 'terminal',
-        width = 0.7,
-        height = 0.6,
+        width = 0.9,
+        height = 0.9,
         border = true,
       },
     },
@@ -249,8 +249,7 @@ return {
           id = 'lsp_progress',
           title = client.name,
           opts = function(notif)
-            notif.icon = #lsp_progress[client.id] == 0 and ' '
-              or spinner[math.floor(vim.uv.hrtime() / (1e6 * 80)) % #spinner + 1]
+            notif.icon = #lsp_progress[client.id] == 0 and ' ' or spinner[math.floor(vim.uv.hrtime() / (1e6 * 80)) % #spinner + 1]
           end,
         })
       end,
@@ -325,13 +324,13 @@ return {
     end, { desc = 'Lazy[G]it' })
 
     vim.keymap.set('n', '\\', function()
-      local current = picker.current
-      if current and current.opts.source == 'explorer' then
-        current:close()
+      local explorer = picker.get({ source = 'explorer' })[1]
+      if explorer then
+        explorer:close()
       else
         snacks.explorer.reveal()
       end
-    end, { desc = 'NeoTree reveal', silent = true })
+    end, { desc = 'Explorer toggle', silent = true })
 
     vim.api.nvim_create_autocmd('TermOpen', {
       callback = function(event)
