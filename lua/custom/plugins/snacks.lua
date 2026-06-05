@@ -5,6 +5,10 @@ local function file_picker_opts(overrides)
   }, overrides or {})
 end
 
+local function project_cwd()
+  return Snacks.git.get_root(vim.fn.getcwd(0)) or vim.fn.getcwd(0)
+end
+
 --- ANSI Shadow figlet headers (one per weekday; generated from the same font)
 local day_headers = {
   Monday = [[
@@ -206,9 +210,27 @@ return {
       layout = {
         preset = 'telescope',
       },
+      formatters = {
+        file = {
+          min_width = 9999,
+          filename_only = false,
+        },
+      },
+      config = function(opts)
+        local root = project_cwd()
+        opts.cwd = root
+        if (opts.finder == 'files' or opts.finder == 'grep') and not opts.buffers and not opts.rtp and not (opts.dirs and #opts.dirs > 0) then
+          opts.dirs = { root }
+        end
+        return opts
+      end,
       sources = {
         files = file_picker_opts(),
-        explorer = file_picker_opts(),
+        explorer = vim.tbl_extend('force', file_picker_opts(), {
+          formatters = {
+            file = { filename_only = false },
+          },
+        }),
       },
       actions = {
         delete_file = function(picker)
