@@ -5,7 +5,7 @@ local function file_picker_opts(overrides)
   }, overrides or {})
 end
 
---- ANSI Shadow figlet headers (one per weekday)
+--- ANSI Shadow figlet headers (one per weekday; generated from the same font)
 local day_headers = {
   Monday = [[
 ███╗   ███╗ ██████╗ ███╗   ██╗██████╗  █████╗ ██╗   ██╗
@@ -92,21 +92,47 @@ end
 
 local day_header_width = max_day_header_width()
 
---- Pad figlet rows to a shared width; use the deepest left pad so tapered rows line up.
-local function layout_figlet_lines(lines, dashboard_width)
+local function figlet_leading_spaces(line)
+  local lead = line:find('%S')
+  return lead and (lead - 1) or 0
+end
+
+--- Tuesday/Thursday ANSI Shadow rows 3-6 are indented 3 spaces in the source art.
+local function uses_thursday_layout(raw_art)
+  local lines = vim.split(raw_art:gsub('\n$', ''), '\n', { plain = true })
+  if #lines < 6 then
+    return false
+  end
+  return figlet_leading_spaces(lines[1]) == 0
+    and figlet_leading_spaces(lines[2]) == 0
+    and figlet_leading_spaces(lines[3]) == 3
+end
+
+--- Pad figlet rows to a shared width before centering in the dashboard.
+local function layout_figlet_lines(lines, dashboard_width, raw_art)
   local max_w = 0
   for _, line in ipairs(lines) do
     max_w = math.max(max_w, vim.api.nvim_strwidth(line))
   end
-  local max_pl = 0
-  for _, line in ipairs(lines) do
-    local extra = max_w - vim.api.nvim_strwidth(line)
-    max_pl = math.max(max_pl, math.floor(extra / 2))
-  end
-  for i, line in ipairs(lines) do
-    local extra = max_w - vim.api.nvim_strwidth(line)
-    local pl = math.min(max_pl, extra)
-    lines[i] = string.rep(' ', pl) .. line .. string.rep(' ', extra - pl)
+  if uses_thursday_layout(raw_art) then
+    local max_pl = 0
+    for _, line in ipairs(lines) do
+      local extra = max_w - vim.api.nvim_strwidth(line)
+      max_pl = math.max(max_pl, math.floor(extra / 2))
+    end
+    for i, line in ipairs(lines) do
+      local extra = max_w - vim.api.nvim_strwidth(line)
+      local pl = math.min(max_pl, extra)
+      lines[i] = string.rep(' ', pl) .. line .. string.rep(' ', extra - pl)
+    end
+  else
+    -- Center only the top ~3/5 of rows; left-align the rest (Friday's row 4 was still pl=1).
+    local center_rows = math.floor(#lines * 3 / 5)
+    for i, line in ipairs(lines) do
+      local extra = max_w - vim.api.nvim_strwidth(line)
+      local pl = i <= center_rows and math.floor(extra / 2) or 0
+      lines[i] = string.rep(' ', pl) .. line .. string.rep(' ', extra - pl)
+    end
   end
   local block_pad = dashboard_width - max_w
   local bl = math.floor(block_pad / 2)
@@ -143,8 +169,9 @@ return {
       },
       sections = {
         function(self)
-          local lines = strip_figlet_lines(day_headers[os.date '%A'] or day_headers.Monday)
-          return { header = layout_figlet_lines(lines, self.opts.width), padding = 2 }
+          local raw_art = day_headers[os.date '%A'] or day_headers.Monday
+          local lines = strip_figlet_lines(raw_art)
+          return { header = layout_figlet_lines(lines, self.opts.width, raw_art), padding = 2 }
         end,
         { section = 'keys', gap = 1 },
         { section = 'startup', padding = { 0, 2 } },
