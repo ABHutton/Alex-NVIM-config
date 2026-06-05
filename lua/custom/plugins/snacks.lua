@@ -198,6 +198,7 @@ return {
         gui = { nerdFontsVersion = '3' },
       },
     },
+    gh = {},
     picker = {
       enabled = true,
       ui_select = true,
@@ -353,6 +354,22 @@ return {
     vim.keymap.set('n', '<leader>og', function()
       snacks.lazygit.open()
     end, { desc = 'Lazy[G]it' })
+
+    vim.keymap.set('n', '<leader>gi', function()
+      picker.gh_issue()
+    end, { desc = 'GitHub [I]ssues (open)' })
+
+    vim.keymap.set('n', '<leader>gI', function()
+      picker.gh_issue { state = 'all' }
+    end, { desc = 'GitHub [I]ssues (all)' })
+
+    vim.keymap.set('n', '<leader>gp', function()
+      picker.gh_pr()
+    end, { desc = 'GitHub [P]ull Requests (open)' })
+
+    vim.keymap.set('n', '<leader>gP', function()
+      picker.gh_pr { state = 'all' }
+    end, { desc = 'GitHub [P]ull Requests (all)' })
 
     vim.keymap.set('n', '\\', function()
       local explorer = picker.get({ source = 'explorer' })[1]

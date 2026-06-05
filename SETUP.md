@@ -5,7 +5,7 @@ This document lists everything you need on a **new machine** beyond cloning this
 ## Quick start
 
 1. Install the [core dependencies](#core-required).
-2. Install any [optional stacks](#optional-by-feature) you use (Ruby, Java, markdown preview, Cursor Agent).
+2. Install any [optional stacks](#optional-by-feature) you use (Ruby, Java, markdown preview, Cursor Agent, GitHub CLI, LazyGit).
 3. Clone this config into `~/.config/nvim` (or `$XDG_CONFIG_HOME/nvim`).
 4. Start Neovim and run `:Lazy` — wait for plugins and Mason tools to finish installing.
 5. Run `:checkhealth kickstart` and `:checkhealth snacks`.
@@ -111,6 +111,23 @@ To use a browser instead of webview, change `app` in `lua/custom/plugins/markdow
 
 Install per [Cursor](https://cursor.com/) documentation. The executable must be on `PATH` as `cursor-agent` (or set `cmd` in `require('cursor-agent').setup({ ... })`).
 
+### GitHub CLI (snacks.nvim)
+
+| Dependency | Why |
+|------------|-----|
+| [GitHub CLI](https://cli.github.com/) (`gh`) | Required for `<leader>gi`, `<leader>gI`, `<leader>gp`, `<leader>gP`; Snacks picker wraps the CLI |
+
+```sh
+sudo apt install gh
+# or see https://github.com/cli/cli#installation
+```
+
+Authenticate once per machine:
+
+```sh
+gh auth login
+```
+
 ### LazyGit (snacks.nvim)
 
 | Dependency | Why |
@@ -150,6 +167,8 @@ rg --version
 fdfind --version   # or fd --version
 deno --version     # if using peek
 cursor-agent --help   # if using Cursor Agent integration
+gh --version          # if using GitHub picker integration
+gh auth status        # if using GitHub picker integration
 lazygit --version     # if using LazyGit integration
 ```
 
