@@ -14,7 +14,6 @@ return {
       { 'mason-org/mason.nvim', opts = {} },
       'mason-org/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
-      { 'j-hui/fidget.nvim', opts = {} },
       'saghen/blink.cmp',
     },
     config = function()
@@ -27,13 +26,25 @@ return {
           end
           map('grn', vim.lsp.buf.rename, '[R]e[n]ame')
           map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
-          map('grr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-          map('gri', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-          map('grd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+          map('grr', function()
+            Snacks.picker.lsp_references()
+          end, '[G]oto [R]eferences')
+          map('gri', function()
+            Snacks.picker.lsp_implementations()
+          end, '[G]oto [I]mplementation')
+          map('grd', function()
+            Snacks.picker.lsp_definitions()
+          end, '[G]oto [D]efinition')
           map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
-          map('gO', require('telescope.builtin').lsp_document_symbols, 'Open Document Symbols')
-          map('gW', require('telescope.builtin').lsp_dynamic_workspace_symbols, 'Open Workspace Symbols')
-          map('grt', require('telescope.builtin').lsp_type_definitions, '[G]oto [T]ype Definition')
+          map('gO', function()
+            Snacks.picker.lsp_symbols()
+          end, 'Open Document Symbols')
+          map('gW', function()
+            Snacks.picker.lsp_workspace_symbols()
+          end, 'Open Workspace Symbols')
+          map('grt', function()
+            Snacks.picker.lsp_type_definitions()
+          end, '[G]oto [T]ype Definition')
           ---@param client vim.lsp.Client
           ---@param method vim.lsp.protocol.Method
           ---@param bufnr? integer
@@ -103,6 +114,40 @@ return {
           end,
         },
       }
+
+      local protocol = require 'vim.lsp.protocol'
+      vim.lsp.handlers['window/showMessage'] = function(err, result, ctx)
+        if err then
+          if err.code ~= protocol.ErrorCodes.ContentModified then
+            local client = vim.lsp.get_client_by_id(ctx.client_id)
+            local client_name = client and client.name or ('client_id=' .. ctx.client_id)
+            vim.notify(
+              client_name .. ': ' .. tostring(err.code) .. ': ' .. err.message,
+              vim.log.levels.ERROR,
+              { title = 'LSP' }
+            )
+          end
+          return
+        end
+        local client = vim.lsp.get_client_by_id(ctx.client_id)
+        local client_name = client and client.name or ('id=' .. ctx.client_id)
+        if not client then
+          vim.notify(
+            ('LSP[%s] client has shut down after sending the message'):format(client_name),
+            vim.log.levels.ERROR,
+            { title = 'LSP' }
+          )
+          return result
+        end
+        local level = ({
+          [protocol.MessageType.Error] = vim.log.levels.ERROR,
+          [protocol.MessageType.Warning] = vim.log.levels.WARN,
+          [protocol.MessageType.Info] = vim.log.levels.INFO,
+          [protocol.MessageType.Log] = vim.log.levels.INFO,
+        })[result.type] or vim.log.levels.INFO
+        vim.notify(result.message, level, { title = client_name })
+        return result
+      end
 
       local capabilities = require('blink.cmp').get_lsp_capabilities()
 

@@ -13,4 +13,15 @@ return {
       indent = { enable = true, disable = { 'ruby' } },
     },
   },
+  {
+    'nvim-treesitter/nvim-treesitter-context',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    opts = {
+      enable = true,
+      max_lines = -1,
+      line_numbers = true,
+      trim_scope = 'outer',
+      mode = 'cursor',
+    },
+  },
 }
