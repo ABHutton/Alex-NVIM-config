@@ -182,6 +182,13 @@ return {
           return { header = layout_figlet_lines(lines, self.opts.width, raw_art, stripped), padding = 2 }
         end,
         { section = 'keys', gap = 1 },
+        {
+          section = 'terminal',
+          cmd = 'cat ~/.config/nvim/dota_ascii/$(shuf -i 1-127 -n 1).txt',
+          align = 'left',
+          indent = 13,
+          height = 22,
+        },
         { section = 'startup', padding = { 0, 2 } },
       },
     },
