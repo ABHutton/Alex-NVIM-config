@@ -190,7 +190,7 @@ return {
           cmd = string.format('cat ~/.config/nvim/dota_ascii/%d.txt', random_hero),
           align = 'left',
           indent = 13,
-          height = 22,
+          height = 25,
         },
         { section = 'startup', padding = { 0, 2 } },
       },
