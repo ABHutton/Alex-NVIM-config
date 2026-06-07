@@ -9,6 +9,9 @@ local function project_cwd()
   return Snacks.git.get_root(vim.fn.getcwd(0)) or vim.fn.getcwd(0)
 end
 
+math.randomseed(vim.uv.hrtime())
+local random_hero = math.random(1, 127)
+
 --- ANSI Shadow figlet headers (one per weekday; generated from the same font)
 local day_headers = {
   Monday = [[
@@ -184,7 +187,7 @@ return {
         { section = 'keys', gap = 1 },
         {
           section = 'terminal',
-          cmd = 'cat ~/.config/nvim/dota_ascii/$(shuf -i 1-127 -n 1).txt',
+          cmd = string.format('cat ~/.config/nvim/dota_ascii/%d.txt', random_hero),
           align = 'left',
           indent = 13,
           height = 22,
