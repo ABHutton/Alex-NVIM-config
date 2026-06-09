@@ -365,6 +365,10 @@ return {
     vim.keymap.set('n', '<leader>ov', '<cmd>vsplit<CR>', { desc = '[S]plit [V]ertically' })
     vim.keymap.set('n', '<leader>oh', '<cmd>split<CR>', { desc = '[S]plit [H]orizontally' })
 
+    vim.keymap.set('n', '<leader>od', function()
+      snacks.dashboard.open()
+    end, { desc = '[O]pen [D]ashboard' })
+
     vim.keymap.set('n', '<leader>/', function()
       picker.lines {
         layout = 'dropdown',
