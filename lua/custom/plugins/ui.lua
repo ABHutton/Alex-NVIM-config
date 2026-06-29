@@ -45,6 +45,8 @@ return {
         { '<leader>r', group = '[R]ubocop' },
         { '<leader>o', group = '[O]pen' },
         { '<leader>a', group = '[A]gent' },
+        { '<leader>d', group = '[D]atabase' },
+        { '<leader>v', group = '[V]im Test' },
       },
     },
   },
