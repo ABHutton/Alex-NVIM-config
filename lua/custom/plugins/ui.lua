@@ -39,6 +39,8 @@ return {
       },
       spec = {
         { '<leader>s', group = '[S]earch' },
+        { '<leader>q', group = '[Q]uickfix' },
+        { '<leader>x', group = 'e[X]tra' },
         { '<leader>g', group = 'Git[H]ub' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
@@ -47,6 +49,7 @@ return {
         { '<leader>a', group = '[A]gent' },
         { '<leader>d', group = '[D]atabase' },
         { '<leader>v', group = '[V]im Test' },
+        { '<leader>m', group = '[M]ulti-cursor' },
       },
     },
   },
