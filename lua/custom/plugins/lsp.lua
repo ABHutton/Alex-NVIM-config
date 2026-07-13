@@ -89,12 +89,9 @@ return {
           -- Ruby LSP indexes declarations as part of codeLens/foldingRange requests.
           -- Neovim does not send those automatically, so grd/grr stay stale until restart.
           -- See: https://github.com/Shopify/ruby-lsp/issues/3384
-          if
-            client
-            and client.name == 'ruby_lsp'
-            and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_codeLens, event.buf)
-          then
+          if client and client.name == 'ruby_lsp' and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_codeLens, event.buf) then
             local refresh_index = function()
+              vim.notify('Reindexing Buffer', vim.log.levels.INFO, { title = 'ruby_lsp' })
               vim.lsp.codelens.refresh { bufnr = event.buf }
             end
             vim.api.nvim_create_autocmd({ 'BufWritePost', 'InsertLeave' }, {
@@ -140,22 +137,14 @@ return {
           if err.code ~= protocol.ErrorCodes.ContentModified then
             local client = vim.lsp.get_client_by_id(ctx.client_id)
             local client_name = client and client.name or ('client_id=' .. ctx.client_id)
-            vim.notify(
-              client_name .. ': ' .. tostring(err.code) .. ': ' .. err.message,
-              vim.log.levels.ERROR,
-              { title = 'LSP' }
-            )
+            vim.notify(client_name .. ': ' .. tostring(err.code) .. ': ' .. err.message, vim.log.levels.ERROR, { title = 'LSP' })
           end
           return
         end
         local client = vim.lsp.get_client_by_id(ctx.client_id)
         local client_name = client and client.name or ('id=' .. ctx.client_id)
         if not client then
-          vim.notify(
-            ('LSP[%s] client has shut down after sending the message'):format(client_name),
-            vim.log.levels.ERROR,
-            { title = 'LSP' }
-          )
+          vim.notify(('LSP[%s] client has shut down after sending the message'):format(client_name), vim.log.levels.ERROR, { title = 'LSP' })
           return result
         end
         local level = ({
