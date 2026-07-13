@@ -33,6 +33,44 @@ local check_external_reqs = function()
   return true
 end
 
+local clipboard_install_hint = function()
+  if vim.env.WAYLAND_DISPLAY and vim.env.WAYLAND_DISPLAY ~= '' then
+    return 'Install wl-clipboard: sudo apt install wl-clipboard'
+  end
+  if vim.env.DISPLAY and vim.env.DISPLAY ~= '' then
+    return 'Install xclip: sudo apt install xclip'
+  end
+  return 'Install a clipboard tool (xclip for X11, wl-clipboard for Wayland)'
+end
+
+local check_clipboard = function()
+  vim.health.start 'clipboard'
+
+  local clipboard_opt = vim.o.clipboard
+  if clipboard_opt ~= '' then
+    vim.health.ok(string.format("clipboard option is set: '%s'", clipboard_opt))
+  else
+    vim.health.info("clipboard option is not set (yanks won't sync to the system clipboard)")
+  end
+
+  local provider = vim.fn['provider#clipboard#Executable']()
+  local err = vim.fn['provider#clipboard#Error']()
+
+  if provider == '' then
+    vim.health.error(err ~= '' and err or 'No clipboard provider found')
+    vim.health.info(clipboard_install_hint())
+    return
+  end
+
+  if provider == 'tmux' then
+    vim.health.warn("Using tmux as the clipboard provider (copies stay in tmux's paste buffer)")
+    vim.health.info(clipboard_install_hint())
+    return
+  end
+
+  vim.health.ok(string.format("Clipboard provider: '%s'", provider))
+end
+
 return {
   check = function()
     vim.health.start 'kickstart.nvim'
@@ -48,5 +86,6 @@ return {
 
     check_version()
     check_external_reqs()
+    check_clipboard()
   end,
 }
