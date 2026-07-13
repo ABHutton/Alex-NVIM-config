@@ -228,9 +228,9 @@ return {
       },
       config = function(opts)
         local root = project_cwd()
-        opts.cwd = root
+        opts.cwd = opts.cwd or root
         if (opts.finder == 'files' or opts.finder == 'grep') and not opts.buffers and not opts.rtp and not (opts.dirs and #opts.dirs > 0) then
-          opts.dirs = { root }
+          opts.dirs = { opts.cwd }
         end
         return opts
       end,
