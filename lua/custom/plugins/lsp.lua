@@ -85,6 +85,25 @@ return {
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
           end
+
+          -- Ruby LSP indexes declarations as part of codeLens/foldingRange requests.
+          -- Neovim does not send those automatically, so grd/grr stay stale until restart.
+          -- See: https://github.com/Shopify/ruby-lsp/issues/3384
+          if
+            client
+            and client.name == 'ruby_lsp'
+            and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_codeLens, event.buf)
+          then
+            local refresh_index = function()
+              vim.lsp.codelens.refresh { bufnr = event.buf }
+            end
+            vim.api.nvim_create_autocmd({ 'BufWritePost', 'InsertLeave' }, {
+              buffer = event.buf,
+              group = vim.api.nvim_create_augroup('ruby-lsp-index', { clear = false }),
+              callback = refresh_index,
+            })
+            vim.schedule(refresh_index)
+          end
         end,
       })
 
