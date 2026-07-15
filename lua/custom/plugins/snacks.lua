@@ -167,6 +167,13 @@ return {
     quickfile = { enabled = true },
     input = { enabled = true },
     notifier = { enabled = true },
+    styles = {
+      notification = {
+        focusable = false,
+        fixbuf = false,
+        enter = false,
+      },
+    },
     indent = { enabled = true },
     explorer = {
       enabled = true,

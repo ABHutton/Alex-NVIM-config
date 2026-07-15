@@ -46,6 +46,29 @@ return {
         end,
       })
 
+      -- Snacks notifier can briefly take focus when dadbod shows connection timing
+      vim.api.nvim_create_autocmd('BufWinEnter', {
+        group = augroup,
+        callback = function(event)
+          if not vim.b[event.buf].dbui_db_key_name then
+            return
+          end
+          if not vim.tbl_contains(sql_ft, vim.bo[event.buf].filetype) then
+            return
+          end
+          local win = event.win
+          vim.schedule(function()
+            if not vim.api.nvim_win_is_valid(win) then
+              return
+            end
+            local cur_ft = vim.bo.filetype
+            if cur_ft == 'snacks_notif' or cur_ft == 'snacks_notif_history' then
+              vim.api.nvim_set_current_win(win)
+            end
+          end)
+        end,
+      })
+
       vim.api.nvim_create_autocmd('FileType', {
         group = augroup,
         pattern = 'dbui',
