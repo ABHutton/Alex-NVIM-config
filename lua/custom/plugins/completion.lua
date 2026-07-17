@@ -21,6 +21,9 @@ return {
     --- @module 'blink.cmp'
     --- @type blink.cmp.Config
     opts = {
+      enabled = function()
+        return vim.bo.filetype ~= 'typr'
+      end,
       keymap = {
         preset = 'default',
       },

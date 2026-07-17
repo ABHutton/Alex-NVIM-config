@@ -138,3 +138,10 @@ require('lazy').setup({
   },
 })
 -- vim: ts=2 sts=2 sw=2 et
+
+vim.keymap.set('n', '<leader>xt', function()
+  require('custom.typr').open()
+end, { desc = 'Typr typing practice' })
+vim.keymap.set('n', '<leader>xs', function()
+  require('custom.typr').open_stats()
+end, { desc = 'Typr [S]tatistics' })
