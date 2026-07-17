@@ -85,6 +85,17 @@ return {
   },
   {
     'sphamba/smear-cursor.nvim',
-    opts = {},
+    opts = {
+      smear_insert_mode = false,
+
+      -- Shorter, snappier smear in normal/visual modes
+      max_length = 12,
+      min_horizontal_distance_smear = 1,
+      min_vertical_distance_smear = 1,
+      stiffness = 0.75,
+      trailing_stiffness = 0.55,
+      damping = 0.9,
+      distance_stop_animating = 0.3,
+    },
   },
 }
