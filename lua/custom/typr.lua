@@ -163,8 +163,44 @@ function M.attach_close_maps(buf)
   vim.keymap.set('n', '<Esc><Esc>', M.close, { buffer = buf, desc = 'Close Typr' })
 end
 
+local function patch_typr_ui_hints()
+  local ui = require 'typr.ui'
+
+  ui.mappings = function()
+    return {
+      {
+        { ' ESC ESC ', 'visual' },
+        { ' or ', 'commentfg' },
+        { ' q ', 'visual' },
+        { ' - Quit ', 'commentfg' },
+
+        { '  ' },
+
+        { ' i ', 'visual' },
+        { ' - Start ', 'commentfg' },
+
+        { '                   ' },
+
+        { ' CTRL ', 'visual' },
+        { ' ' },
+        { ' R ', 'visual' },
+        { ' - Restart ', 'commentfg' },
+      },
+    }
+  end
+
+  -- layout captures ui.mappings at load time; update that reference too
+  local layout = require 'typr.ui.layout'
+  for _, section in ipairs(layout) do
+    if section.name == 'mappings' then
+      section.lines = ui.mappings
+    end
+  end
+end
+
 local function load_typr()
   require('lazy').load { plugins = { 'typr' }, wait = true }
+  patch_typr_ui_hints()
 end
 
 function M.open()
