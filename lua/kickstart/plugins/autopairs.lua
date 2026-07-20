@@ -6,6 +6,9 @@ return {
   event = 'InsertEnter',
   opts = {
     map_cr = false,
+    enabled = function(buf)
+      return not require('custom.typr').is_typr_buffer(buf)
+    end,
     disable_filetype = {
       'TelescopePrompt',
       'spectre_panel',

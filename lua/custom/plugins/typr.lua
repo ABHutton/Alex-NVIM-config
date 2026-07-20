@@ -9,6 +9,7 @@ return {
       end,
     },
     config = function(_, opts)
+      require('custom.typr').patch_stats()
       require('typr').setup(opts)
 
       local typr = require 'custom.typr'

@@ -16,13 +16,31 @@ function M.is_typr_buffer(buf)
   return M.is_typr_filetype(vim.bo[buf].filetype)
 end
 
+local autopair_keys = { '<bs>', '<c-h>', '<c-w>', '"', "'", '(', ')', '[', ']', '`', '{', '}' }
+
+local function disable_autopairs(buf)
+  pcall(function()
+    require('nvim-autopairs').set_buf_rule({}, buf)
+    vim.b[buf]['nvim-autopairs'] = 0
+
+    local ok, keys = pcall(vim.api.nvim_buf_get_var, buf, 'autopairs_keymaps')
+    if ok and type(keys) == 'table' then
+      for _, key in pairs(keys) do
+        pcall(vim.api.nvim_buf_del_keymap, buf, 'i', key)
+      end
+    end
+
+    for _, key in ipairs(autopair_keys) do
+      pcall(vim.api.nvim_buf_del_keymap, buf, 'i', key)
+    end
+  end)
+end
+
 --- Disable insert-mode helpers that interfere with typing practice.
 function M.disable_editor_plugins(buf)
   vim.b[buf].minisurround_disable = true
   vim.b[buf].miniai_disable = true
-  pcall(function()
-    require('nvim-autopairs').force_attach(buf)
-  end)
+  disable_autopairs(buf)
 end
 
 local restore_dashboard = false
@@ -217,8 +235,83 @@ local function patch_typr_ui_hints()
   end
 end
 
+--- Read typr stats from disk (plain JSON or legacy dumped-lua format).
+local function read_stats_file(path)
+  if vim.fn.filereadable(path) ~= 1 then
+    return nil
+  end
+
+  local raw = table.concat(vim.fn.readfile(path), '\n')
+  if raw ~= '' then
+    local ok, data = pcall(vim.json.decode, raw)
+    if ok and type(data) == 'table' then
+      return data
+    end
+  end
+
+  local ok, stats = pcall(dofile, path)
+  if ok and type(stats) == 'string' then
+    local decode_ok, data = pcall(vim.json.decode, stats)
+    if decode_ok then
+      return data
+    end
+  end
+
+  return nil
+end
+
+--- Typr's default save wraps JSON in single-quoted Lua, which breaks for keys like
+--- `"`, `'`, and `\` and throws when a test finishes.
+function M.patch_stats()
+  local su = require('typr.stats.utils')
+  if su._custom_stats_patched then
+    return
+  end
+  su._custom_stats_patched = true
+
+  local state = require('typr.state')
+
+  su.save_str_tofile = function(tb)
+    local path = state.config.stats_filepath
+    local file = io.open(path, 'wb')
+    if not file then
+      return
+    end
+    file:write(vim.json.encode(tb))
+    file:close()
+  end
+
+  su.restore_stats = function()
+    local path = state.config.stats_filepath
+    local data = read_stats_file(path)
+    if data then
+      state.data = data
+      return
+    end
+
+    state.data = su.gen_default_stats()
+    su.save_str_tofile(state.data)
+  end
+end
+
+--- Typr stores per-character accuracy keys; legacy saves could corrupt the stats file.
+local function ensure_valid_stats()
+  local path = vim.fn.stdpath 'data' .. '/typrstats'
+  if vim.fn.filereadable(path) ~= 1 then
+    return
+  end
+
+  if not read_stats_file(path) then
+    os.remove(path)
+    vim.notify('Typr stats were corrupt and have been reset.', vim.log.levels.WARN)
+  end
+end
+
 local function load_typr()
+  ensure_valid_stats()
   require('lazy').load { plugins = { 'typr' }, wait = true }
+  M.patch_stats()
+  require('typr.stats.utils').restore_stats()
   patch_typr_ui_hints()
 end
 
