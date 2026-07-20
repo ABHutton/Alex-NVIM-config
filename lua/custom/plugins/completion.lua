@@ -22,7 +22,7 @@ return {
     --- @type blink.cmp.Config
     opts = {
       enabled = function()
-        return vim.bo.filetype ~= 'typr'
+        return not require('custom.typr').is_typr_buffer()
       end,
       keymap = {
         preset = 'default',

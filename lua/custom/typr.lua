@@ -4,7 +4,26 @@
 local M = {}
 
 local api = vim.api
-local typr_fts = { 'typr', 'typrstats', 'VoltWindow' }
+M.typr_filetypes = { 'typr', 'typrstats', 'VoltWindow' }
+local typr_fts = M.typr_filetypes
+
+function M.is_typr_filetype(filetype)
+  return vim.tbl_contains(typr_fts, filetype)
+end
+
+function M.is_typr_buffer(buf)
+  buf = buf or 0
+  return M.is_typr_filetype(vim.bo[buf].filetype)
+end
+
+--- Disable insert-mode helpers that interfere with typing practice.
+function M.disable_editor_plugins(buf)
+  vim.b[buf].minisurround_disable = true
+  vim.b[buf].miniai_disable = true
+  pcall(function()
+    require('nvim-autopairs').force_attach(buf)
+  end)
+end
 
 local restore_dashboard = false
 local closing = false

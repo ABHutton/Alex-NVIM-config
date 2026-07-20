@@ -20,6 +20,7 @@ return {
         group = vim.api.nvim_create_augroup('typr_snacks', { clear = true }),
         pattern = { 'typr', 'typrstats' },
         callback = function(event)
+          typr.disable_editor_plugins(event.buf)
           typr.attach_close_maps(event.buf)
         end,
       })
