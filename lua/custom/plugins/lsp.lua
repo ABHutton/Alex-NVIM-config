@@ -80,12 +80,6 @@ return {
             })
           end
 
-          if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
-            map('<leader>th', function()
-              vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
-            end, '[T]oggle Inlay [H]ints')
-          end
-
           -- Ruby LSP indexes declarations as part of codeLens/foldingRange requests.
           -- Neovim does not send those automatically, so grd/grr stay stale until restart.
           -- See: https://github.com/Shopify/ruby-lsp/issues/3384
