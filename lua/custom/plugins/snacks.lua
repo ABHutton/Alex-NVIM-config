@@ -167,6 +167,7 @@ return {
     quickfile = { enabled = true },
     input = { enabled = true },
     notifier = { enabled = true },
+    toggle = { enabled = true },
     styles = {
       notification = {
         focusable = false,
@@ -223,6 +224,9 @@ return {
     gh = {},
     picker = {
       enabled = true,
+      exclude = {
+        'Session.vim',
+      },
       ui_select = true,
       layout = {
         preset = 'telescope',
@@ -282,6 +286,32 @@ return {
   config = function(_, opts)
     local snacks = require 'snacks'
     snacks.setup(opts)
+
+    -- Toggles (which-key shows on/off state)
+    snacks.toggle.inlay_hints():map '<leader>th'
+    snacks.toggle.indent():map '<leader>ti'
+    snacks
+      .toggle({
+        name = 'Git Blame Line',
+        get = function()
+          return require('gitsigns.config').config.current_line_blame
+        end,
+        set = function(state)
+          require('gitsigns').toggle_current_line_blame(state)
+        end,
+      })
+      :map '<leader>tb'
+    snacks
+      .toggle({
+        name = 'Git Show Deleted',
+        get = function()
+          return require('gitsigns.config').config.show_deleted
+        end,
+        set = function(state)
+          require('gitsigns').toggle_deleted(state)
+        end,
+      })
+      :map '<leader>tD'
 
     -- LSP progress via snacks notifier (fidget uses its own UI, not vim.notify)
     ---@type table<number, { token: lsp.ProgressToken, msg: string, done: boolean }[]>
@@ -398,6 +428,10 @@ return {
     vim.keymap.set('n', '<leader>og', function()
       snacks.lazygit.open()
     end, { desc = 'Lazy[G]it' })
+
+    vim.keymap.set('n', '<leader>hb', function()
+      snacks.git.blame_line()
+    end, { desc = 'git [b]lame line' })
 
     vim.keymap.set('n', '<leader>gi', function()
       picker.gh_issue()

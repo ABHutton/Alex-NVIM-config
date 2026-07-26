@@ -76,13 +76,43 @@ return {
     config = function()
       require('mini.ai').setup { n_lines = 500 }
       require('mini.surround').setup()
-      local statusline = require 'mini.statusline'
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function()
-        return '%2l:%-2v'
-      end
     end,
+  },
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = {
+      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+    },
+    event = 'VeryLazy',
+    opts = {
+      options = {
+        theme = 'tokyonight-night',
+        icons_enabled = vim.g.have_nerd_font,
+        globalstatus = true,
+        component_separators = '',
+        section_separators = '',
+        disabled_filetypes = {
+          statusline = { 'dashboard', 'snacks_dashboard' },
+        },
+      },
+      sections = {
+        lualine_a = { 'mode' },
+        lualine_b = { 'branch', 'diff', 'diagnostics' },
+        lualine_c = { { 'filename', path = 3 } },
+        lualine_x = { 'encoding', 'fileformat', 'filetype' },
+        lualine_y = { 'progress' },
+        lualine_z = { '%2l:%-2v' },
+      },
+      inactive_sections = {
+        lualine_a = {},
+        lualine_b = {},
+        lualine_c = { { 'filename', path = 3 } },
+        lualine_x = { '%2l:%-2v' },
+        lualine_y = {},
+        lualine_z = {},
+      },
+      extensions = { 'lazy', 'mason', 'quickfix' },
+    },
   },
   {
     'sphamba/smear-cursor.nvim',
