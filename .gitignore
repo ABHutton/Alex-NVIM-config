@@ -6,3 +6,6 @@ nvim
 spell/
 # Vim session files (created by :mksession / session plugins)
 Session.vim
+
+# Local secrets (copy from .env.example)
+.env

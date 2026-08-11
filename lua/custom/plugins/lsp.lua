@@ -27,13 +27,16 @@ return {
           map('grn', vim.lsp.buf.rename, '[R]e[n]ame')
           map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
           map('grr', function()
-            Snacks.picker.lsp_references()
+            Snacks.picker.lsp_references {
+              unique_lines = true,
+              include_declaration = false,
+            }
           end, '[G]oto [R]eferences')
           map('gri', function()
-            Snacks.picker.lsp_implementations()
+            Snacks.picker.lsp_implementations { unique_lines = true }
           end, '[G]oto [I]mplementation')
           map('grd', function()
-            Snacks.picker.lsp_definitions()
+            Snacks.picker.lsp_definitions { unique_lines = true }
           end, '[G]oto [D]efinition')
           map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
           map('gO', function()
@@ -182,6 +185,10 @@ return {
       require('mason-lspconfig').setup {
         ensure_installed = {},
         automatic_installation = false,
+        -- rubocop LSP duplicates ruby_lsp for grd/grr; keep RuboCop diagnostics via ruby_lsp.
+        automatic_enable = {
+          exclude = { 'rubocop' },
+        },
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}

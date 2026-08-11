@@ -236,11 +236,11 @@ return {
         gui = { nerdFontsVersion = '3' },
       },
     },
-    gh = {},
     picker = {
       enabled = true,
       exclude = {
         'Session.vim',
+        '.env',
       },
       ui_select = true,
       layout = {
@@ -447,22 +447,6 @@ return {
     vim.keymap.set('n', '<leader>hb', function()
       snacks.git.blame_line()
     end, { desc = 'git [b]lame line' })
-
-    vim.keymap.set('n', '<leader>gi', function()
-      picker.gh_issue()
-    end, { desc = 'GitHub [I]ssues (open)' })
-
-    vim.keymap.set('n', '<leader>gI', function()
-      picker.gh_issue { state = 'all' }
-    end, { desc = 'GitHub [I]ssues (all)' })
-
-    vim.keymap.set('n', '<leader>gp', function()
-      picker.gh_pr()
-    end, { desc = 'GitHub [P]ull Requests (open)' })
-
-    vim.keymap.set('n', '<leader>gP', function()
-      picker.gh_pr { state = 'all' }
-    end, { desc = 'GitHub [P]ull Requests (all)' })
 
     vim.keymap.set('n', '\\', function()
       local explorer = picker.get({ source = 'explorer' })[1]

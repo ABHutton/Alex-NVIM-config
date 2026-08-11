@@ -1,3 +1,6 @@
+-- Local secrets from config `.env` (gitignored); shell exports still win.
+require('custom.env').load()
+
 -- Core settings
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '

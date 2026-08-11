@@ -39,6 +39,19 @@ return {
         vim.opt_local.conceallevel = 2
       end,
     },
+    -- Keep UI icons, but use plain ASCII so terminal fonts can't fall back to
+    -- tofu/boxes (○/✓ and Nerd Font glyphs both mis-render in some setups).
+    ui = {
+      enable = true,
+      checkboxes = {
+        [' '] = { char = 'o', hl_group = 'ObsidianTodo' },
+        ['x'] = { char = 'x', hl_group = 'ObsidianDone' },
+        ['~'] = { char = '~', hl_group = 'ObsidianTilde' },
+        ['!'] = { char = '!', hl_group = 'ObsidianImportant' },
+        ['>'] = { char = '>', hl_group = 'ObsidianRightArrow' },
+      },
+      bullets = { char = '-', hl_group = 'ObsidianBullet' },
+    },
   },
 
   keys = {

@@ -5,10 +5,10 @@ This document lists everything you need on a **new machine** beyond cloning this
 ## Quick start
 
 1. Install the [core dependencies](#core-required).
-2. Install any [optional stacks](#optional-by-feature) you use (Ruby, Java, markdown preview, Cursor Agent, GitHub CLI, LazyGit).
+2. Install any [optional stacks](#optional-by-feature) you use (Ruby, Java, markdown preview, Cursor Agent, Atlas / GitHub CLI + Jira, LazyGit).
 3. Clone this config into `~/.config/nvim` (or `$XDG_CONFIG_HOME/nvim`).
 4. Start Neovim and run `:Lazy` — wait for plugins and Mason tools to finish installing.
-5. Run `:checkhealth kickstart` and `:checkhealth snacks`.
+5. Run `:checkhealth kickstart`, `:checkhealth snacks`, and `:checkhealth atlas` (if using Atlas).
 
 ---
 
@@ -111,22 +111,42 @@ To use a browser instead of webview, change `app` in `lua/custom/plugins/markdow
 
 Install per [Cursor](https://cursor.com/) documentation. The executable must be on `PATH` as `cursor-agent` (or set `cmd` in `require('cursor-agent').setup({ ... })`).
 
-### GitHub CLI (snacks.nvim)
+### Atlas (atlas.nvim)
 
 | Dependency | Why |
 |------------|-----|
-| [GitHub CLI](https://cli.github.com/) (`gh`) | Required for `<leader>gi`, `<leader>gI`, `<leader>gp`, `<leader>gP`; Snacks picker wraps the CLI |
+| [GitHub CLI](https://cli.github.com/) (`gh`) | Atlas GitHub pulls (`<leader>gp`, `<leader>gc`, …) |
+| `curl` | Atlas HTTP for Jira and other providers |
+| Jira Cloud API token | Atlas Jira issues (`<leader>gj`, `<leader>gi`) |
 
 ```sh
-sudo apt install gh
+sudo apt install gh curl
 # or see https://github.com/cli/cli#installation
 ```
 
-Authenticate once per machine:
+Authenticate GitHub once per machine:
 
 ```sh
 gh auth login
 ```
+
+Store Jira credentials in `~/.config/nvim/.env` (gitignored; copy from `.env.example`):
+
+```sh
+cp ~/.config/nvim/.env.example ~/.config/nvim/.env
+# then edit .env:
+# JIRA_BASE_URL=https://your-site.atlassian.net
+# JIRA_EMAIL=you@example.com
+# JIRA_API_TOKEN=your_jira_api_token
+```
+
+Neovim loads that file on startup via `lua/custom/env.lua`. Shell exports still override `.env` when set.
+
+Create an API token at [Atlassian account API tokens](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/).
+
+Atlas leader keys: `<leader>gp` pulls, `<leader>gj` Jira, `<leader>gc` create PR, `<leader>gi` create issue, `<leader>go` open, `<leader>gn` notes.
+
+PR review/checkout uses `pulls.repo_config.paths` in `lua/custom/plugins/atlas.lua` (currently `AgrigateOne/*` → `~/dev/*`). Without a mapping, Atlas tries an HTTPS cache clone, which often fails for private repos when git is set up for SSH. Add more `org/*` → `~/path/*` entries as needed.
 
 ### LazyGit (snacks.nvim)
 
@@ -156,6 +176,7 @@ Inside Neovim:
 ```vim
 :checkhealth kickstart
 :checkhealth snacks
+:checkhealth atlas
 :Mason
 ```
 
@@ -167,8 +188,9 @@ rg --version
 fdfind --version   # or fd --version
 deno --version     # if using peek
 cursor-agent --help   # if using Cursor Agent integration
-gh --version          # if using GitHub picker integration
-gh auth status        # if using GitHub picker integration
+gh --version          # if using Atlas GitHub integration
+gh auth status        # if using Atlas GitHub integration
+test -f ~/.config/nvim/.env   # if using Atlas Jira
 lazygit --version     # if using LazyGit integration
 ```
 
@@ -180,5 +202,6 @@ lazygit --version     # if using LazyGit integration
 |------|----------|
 | `README.md` | Upstream kickstart.nvim documentation and install recipes |
 | `init.lua` | Core options and keymaps |
+| `.env.example` | Template for local Atlas/Jira secrets (copy to `.env`) |
 | `lua/custom/plugins/` | Custom plugin configuration |
 | `lazy-lock.json` | Pinned plugin versions for reproducible installs |
