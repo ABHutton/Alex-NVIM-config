@@ -72,12 +72,12 @@ return {
     config = function(_, opts)
       require('atlas').setup(opts)
 
-      -- Atlas UI messages go to its footer by default; mirror warn/error to vim.notify
+      -- Atlas UI messages go to its statusline by default; mirror warn/error to vim.notify
       -- so Snacks notifier (and :messages) also see them.
-      local footer = require 'atlas.ui.components.footer'
-      local footer_notify = footer.notify
-      footer.notify = function(level, text, duration_ms)
-        footer_notify(level, text, duration_ms)
+      local statusline = require 'atlas.ui.statusline'
+      local statusline_notify = statusline.notify
+      statusline.notify = function(level, text, duration_ms)
+        statusline_notify(level, text, duration_ms)
         if level == 'error' or level == 'warn' then
           vim.notify(tostring(text), level == 'error' and vim.log.levels.ERROR or vim.log.levels.WARN, {
             title = 'Atlas',
