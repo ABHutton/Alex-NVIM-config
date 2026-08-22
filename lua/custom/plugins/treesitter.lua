@@ -1,6 +1,10 @@
 return {
   {
     'nvim-treesitter/nvim-treesitter',
+    -- Only load if Neovim is older than 0.12
+    cond = function()
+      return vim.fn.has 'nvim-0.12' == 0
+    end,
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs',
     opts = {
@@ -15,7 +19,8 @@ return {
   },
   {
     'nvim-treesitter/nvim-treesitter-context',
-    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    -- Dynamically set the dependency so it doesn't try to load the archived plugin in 0.12+
+    dependencies = vim.fn.has 'nvim-0.12' == 0 and { 'nvim-treesitter/nvim-treesitter' } or {},
     opts = {
       enable = true,
       max_lines = 10,
