@@ -24,7 +24,7 @@ return {
         syntax = true,
         theme = 'dark',
         update_on_change = true,
-        app = 'webview',
+        app = 'browser',
         filetype = { 'markdown' },
       }
       vim.api.nvim_create_user_command('PeekOpen', require('peek').open, {})
