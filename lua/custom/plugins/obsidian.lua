@@ -39,10 +39,14 @@ return {
         vim.opt_local.conceallevel = 2
       end,
     },
-    -- Keep UI icons, but use plain ASCII so terminal fonts can't fall back to
-    -- tofu/boxes (○/✓ and Nerd Font glyphs both mis-render in some setups).
+    -- Toggle cycle: `checkbox.order`. Display chars: `ui.checkboxes` (upstream
+    -- warn_once if checkboxes are customized — harmless; order is not inferred from key order).
+    checkbox = {
+      order = { ' ', '~', '!', '>', 'x' },
+    },
     ui = {
       enable = true,
+      -- Plain ASCII icons (Nerd Font / Unicode checkboxes mis-render in some terminals).
       checkboxes = {
         [' '] = { char = 'o', hl_group = 'ObsidianTodo' },
         ['x'] = { char = 'x', hl_group = 'ObsidianDone' },
