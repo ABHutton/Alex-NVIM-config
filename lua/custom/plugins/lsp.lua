@@ -89,7 +89,7 @@ return {
           if client and client.name == 'ruby_lsp' and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_codeLens, event.buf) then
             local refresh_index = function()
               vim.notify('Reindexing Buffer', vim.log.levels.INFO, { title = 'ruby_lsp' })
-              vim.lsp.codelens.refresh { bufnr = event.buf }
+              vim.lsp.codelens.enable(true, { bufnr = event.buf })
             end
             vim.api.nvim_create_autocmd({ 'BufWritePost', 'InsertLeave' }, {
               buffer = event.buf,
