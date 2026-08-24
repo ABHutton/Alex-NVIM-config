@@ -55,23 +55,6 @@ return {
     },
   },
   {
-    'folke/tokyonight.nvim',
-    priority = 1000,
-    config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require('tokyonight').setup {
-        transparent = true,
-        terminal_colors = true,
-        styles = {
-          comments = { italic = false },
-          sidebars = 'transparent',
-          floats = 'transparent',
-        },
-      }
-      vim.cmd.colorscheme 'tokyonight-night'
-    end,
-  },
-  {
     'echasnovski/mini.nvim',
     config = function()
       require('mini.ai').setup { n_lines = 500 }
@@ -84,35 +67,37 @@ return {
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
     event = 'VeryLazy',
-    opts = {
-      options = {
-        theme = 'tokyonight-night',
-        icons_enabled = vim.g.have_nerd_font,
-        globalstatus = true,
-        component_separators = '',
-        section_separators = '',
-        disabled_filetypes = {
-          statusline = { 'dashboard', 'snacks_dashboard' },
+    opts = function()
+      return {
+        options = {
+          theme = require('custom.omarchy-theme').colorscheme_name(),
+          icons_enabled = vim.g.have_nerd_font,
+          globalstatus = true,
+          component_separators = '',
+          section_separators = '',
+          disabled_filetypes = {
+            statusline = { 'dashboard', 'snacks_dashboard' },
+          },
         },
-      },
-      sections = {
-        lualine_a = { 'mode' },
-        lualine_b = { 'branch', 'diff', 'diagnostics' },
-        lualine_c = { { 'filename', path = 3 } },
-        lualine_x = { 'encoding', 'fileformat', 'filetype' },
-        lualine_y = { 'progress' },
-        lualine_z = { '%2l:%-2v' },
-      },
-      inactive_sections = {
-        lualine_a = {},
-        lualine_b = {},
-        lualine_c = { { 'filename', path = 3 } },
-        lualine_x = { '%2l:%-2v' },
-        lualine_y = {},
-        lualine_z = {},
-      },
-      extensions = { 'lazy', 'mason', 'quickfix' },
-    },
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff', 'diagnostics' },
+          lualine_c = { { 'filename', path = 3 } },
+          lualine_x = { 'encoding', 'fileformat', 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { '%2l:%-2v' },
+        },
+        inactive_sections = {
+          lualine_a = {},
+          lualine_b = {},
+          lualine_c = { { 'filename', path = 3 } },
+          lualine_x = { '%2l:%-2v' },
+          lualine_y = {},
+          lualine_z = {},
+        },
+        extensions = { 'lazy', 'mason', 'quickfix' },
+      }
+    end,
   },
   {
     'sphamba/smear-cursor.nvim',
