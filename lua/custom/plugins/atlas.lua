@@ -53,21 +53,7 @@ return {
     },
     dependencies = {
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
-      {
-        -- Atlas uses this for markdown panes. Without overrides it also paints
-        -- normal .md buffers with Nerd Font checkboxes, which fights Obsidian UI.
-        'MeanderingProgrammer/render-markdown.nvim',
-        opts = {
-          ignore = function(buf)
-            local file = vim.api.nvim_buf_get_name(buf)
-            return vim.startswith(file, vim.fn.expand '~/dev/Obsidian/Work')
-          end,
-          checkbox = {
-            unchecked = { icon = 'o ' },
-            checked = { icon = 'x ' },
-          },
-        },
-      },
+      'MeanderingProgrammer/render-markdown.nvim',
     },
     config = function(_, opts)
       require('atlas').setup(opts)

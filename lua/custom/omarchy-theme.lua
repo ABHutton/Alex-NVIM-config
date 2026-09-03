@@ -4,6 +4,10 @@
 local M = {}
 
 M.theme_file = vim.fn.expand '~/.local/state/omarchy/current/theme/neovim.lua'
+M.theme_name_file = vim.fn.expand '~/.local/state/omarchy/current/theme.name'
+M.transparency_file = vim.fn.stdpath 'config' .. '/plugin/after/transparency.lua'
+
+local tokyo_night = require 'custom.themes.tokyo-night'
 
 ---@class OmarchyThemeInfo
 ---@field plugin string
@@ -14,22 +18,35 @@ M.theme_file = vim.fn.expand '~/.local/state/omarchy/current/theme/neovim.lua'
 ---@field branch? string
 ---@field priority? number
 ---@field fallback? boolean
+---@field custom? boolean
 
-M.fallback = {
-  plugin = 'folke/tokyonight.nvim',
-  colorscheme = 'tokyonight-night',
-  opts = {
-    transparent = true,
-    terminal_colors = true,
-    styles = {
-      comments = { italic = false },
-      sidebars = 'transparent',
-      floats = 'transparent',
-    },
-  },
-  priority = 1000,
-  fallback = true,
-}
+M.fallback = vim.tbl_extend('force', vim.deepcopy(tokyo_night), { fallback = true })
+
+---@return string
+function M.theme_name()
+  if vim.fn.filereadable(M.theme_name_file) == 0 then
+    return ''
+  end
+
+  return (vim.fn.readfile(M.theme_name_file)[1] or ''):gsub('%s+$', '')
+end
+
+--- Omarchy uses a bare folke/tokyonight descriptor for Tokyo Night; prefer our custom config.
+---@return boolean
+local function use_custom_tokyo_night()
+  return M.theme_name() == 'tokyo-night'
+end
+
+local function apply_transparency()
+  if vim.fn.filereadable(M.transparency_file) ~= 1 then
+    return
+  end
+
+  vim.cmd.source(M.transparency_file)
+  vim.api.nvim_exec_autocmds('ColorScheme', { modeline = false })
+  vim.api.nvim_exec_autocmds('VimEnter', { modeline = false })
+  vim.cmd 'redraw!'
+end
 
 --- Known Omarchy/LazyVim descriptor quirks.
 local colorscheme_aliases = {
@@ -157,6 +174,10 @@ end
 
 ---@return OmarchyThemeInfo
 function M.resolve()
+  if use_custom_tokyo_night() then
+    return vim.deepcopy(tokyo_night)
+  end
+
   local spec = M.omarchy_spec()
   if not spec then
     return vim.deepcopy(M.fallback)
@@ -281,6 +302,7 @@ end
 
 ---@param info OmarchyThemeInfo
 ---@param opts? table
+
 ---@return boolean setup_called
 local function setup_plugin(info, opts)
   local ok, plugin = pcall(require, resolve_module(info))
@@ -363,6 +385,10 @@ function M.apply(info)
         },
       }
     end)
+
+    if info.custom or use_custom_tokyo_night() then
+      vim.defer_fn(apply_transparency, 5)
+    end
 
     vim.cmd 'redraw!'
   end, 5)

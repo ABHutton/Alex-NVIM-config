@@ -436,6 +436,10 @@ return {
       picker.files(file_picker_opts { cwd = vim.fn.stdpath 'config' })
     end, { desc = '[S]earch [N]eovim files' })
 
+    vim.keymap.set('n', '<leader>so', function()
+      picker.files(file_picker_opts { cwd = vim.fn.expand '~/dev/Obsidian/Work' })
+    end, { desc = '[S]earch [O]bsidian vault' })
+
     vim.keymap.set('n', '<leader>ot', function()
       snacks.terminal.toggle()
     end, { desc = '[T]erminal' })
