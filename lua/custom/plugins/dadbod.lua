@@ -25,18 +25,71 @@ return {
       }
     end,
     keys = {
-      { '<leader>db', '<cmd>DBUIToggle<CR>', desc = 'Toggle [D]ata[B]ase UI' },
+      {
+        '<leader>db',
+        function()
+          require('custom.session').dismiss_dashboard()
+          vim.cmd 'DBUIToggle'
+        end,
+        desc = 'Toggle [D]ata[B]ase UI',
+      },
       { '<leader>da', '<cmd>DBUIAddConnection<CR>', desc = '[D]atabase [A]dd connection' },
       { '<leader>df', '<cmd>DBUIFindBuffer<CR>', desc = '[D]atabase [F]ind buffer' },
     },
     config = function()
       local augroup = vim.api.nvim_create_augroup('dadbod', { clear = true })
+      local session = require 'custom.session'
 
       local function close_dbui()
         if vim.fn.bufwinnr 'dbui' ~= -1 then
           vim.fn['db_ui#close']()
         end
       end
+
+      -- DBUI skips nofile buffers (like the Snacks dashboard) when picking a query
+      -- window, so it opens a third split. Dismiss the dashboard first.
+      vim.api.nvim_create_autocmd('User', {
+        group = augroup,
+        pattern = 'DBUIOpened',
+        callback = function()
+          session.dismiss_dashboard()
+        end,
+      })
+
+      -- Fallback: if a query still lands beside the dashboard, move it over.
+      vim.api.nvim_create_autocmd('BufWinEnter', {
+        group = augroup,
+        callback = function(event)
+          if not vim.b[event.buf].dbui_db_key_name then
+            return
+          end
+          if not vim.tbl_contains(sql_ft, vim.bo[event.buf].filetype) then
+            return
+          end
+
+          local dash_wins = session.dashboard_wins()
+          if #dash_wins == 0 then
+            return
+          end
+
+          local query_win = event.win
+          local dash_win = dash_wins[1]
+          if query_win == dash_win then
+            return
+          end
+
+          vim.schedule(function()
+            if not vim.api.nvim_win_is_valid(dash_win) or not vim.api.nvim_buf_is_valid(event.buf) then
+              return
+            end
+            vim.api.nvim_win_set_buf(dash_win, event.buf)
+            if vim.api.nvim_win_is_valid(query_win) and query_win ~= dash_win then
+              pcall(vim.api.nvim_win_close, query_win, false)
+            end
+            vim.api.nvim_set_current_win(dash_win)
+          end)
+        end,
+      })
 
       vim.api.nvim_create_autocmd('FileType', {
         group = augroup,
