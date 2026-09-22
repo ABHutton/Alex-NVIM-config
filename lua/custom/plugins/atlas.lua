@@ -4,15 +4,12 @@
 local function open_with_panel(domain, provider)
   require('atlas').open(domain, provider)
   vim.schedule(function()
-    local layout = require 'atlas.ui.layout'
-    local ui_state = require 'atlas.ui.state'
-    if layout.win_id 'detail' ~= nil then
+    local dashboard = require('atlas.' .. domain .. '.ui.dashboard')
+    local detail = require('atlas.' .. domain .. '.ui.detail')
+    if detail.is_open() then
       return
     end
-    layout.toggle_detail()
-    if ui_state.on_panel_open then
-      ui_state.on_panel_open()
-    end
+    dashboard.toggle_detail()
   end)
 end
 
@@ -72,6 +69,19 @@ return {
       end
     end,
     opts = {
+      providers = {
+        github = {
+          cache_ttl = 300,
+        },
+        jira = {
+          base_url = vim.env.JIRA_BASE_URL,
+          email = vim.env.JIRA_EMAIL,
+          token = vim.env.JIRA_API_TOKEN,
+          auth_method = 'basic',
+          api_type = 'cloud',
+          cache_ttl = 300,
+        },
+      },
       pulls = {
         diff = {
           open_cmd = 'AtlasDiff',
@@ -85,82 +95,71 @@ return {
             ['AgrigateOne/*'] = '~/dev/*',
           },
         },
-        providers = {
-          github = {
-            cache_ttl = 300,
-            views = {
-              {
-                name = 'Review requests',
-                key = '1',
-                layout = 'plain',
-                search = 'is:pr is:open review-requested:@me sort:updated-desc',
-              },
-              {
-                name = 'My PRs',
-                key = '2',
-                layout = 'plain',
-                search = 'is:pr is:open author:@me sort:updated-desc',
-              },
-              {
-                name = 'Involved',
-                key = '3',
-                layout = 'plain',
-                search = 'is:pr is:open involves:@me sort:updated-desc',
-              },
+        github = {
+          views = {
+            {
+              name = 'Review requests',
+              key = '1',
+              layout = 'plain',
+              search = 'is:pr is:open review-requested:@me sort:updated-desc',
             },
-            bookmarks = {
-              items = {
-                ['Drafts'] = 'is:pr is:draft author:@me',
-                ['Recently merged'] = 'is:pr is:merged author:@me sort:updated-desc',
-              },
+            {
+              name = 'My PRs',
+              key = '2',
+              layout = 'plain',
+              search = 'is:pr is:open author:@me sort:updated-desc',
+            },
+            {
+              name = 'Involved',
+              key = '3',
+              layout = 'plain',
+              search = 'is:pr is:open involves:@me sort:updated-desc',
+            },
+          },
+          bookmarks = {
+            items = {
+              ['Drafts'] = 'is:pr is:draft author:@me',
+              ['Recently merged'] = 'is:pr is:merged author:@me sort:updated-desc',
             },
           },
         },
       },
       issues = {
         with_relationships = false,
-        providers = {
-          jira = {
-            base_url = vim.env.JIRA_BASE_URL,
-            email = vim.env.JIRA_EMAIL,
-            token = vim.env.JIRA_API_TOKEN,
-            auth_method = 'basic',
-            api_type = 'cloud',
-            cache_ttl = 300,
-            views = {
-              {
-                name = 'In Progress',
-                key = '1',
-                layout = 'plain',
-                jql = 'assignee = currentUser() AND status = "2. In Progress" AND type != Epic ORDER BY updated DESC',
-              },
-              {
-                name = 'In Review',
-                key = '2',
-                layout = 'plain',
-                jql = 'assignee = currentUser() AND status = "3. In Review" AND type != Epic ORDER BY updated DESC',
-              },
-              {
-                name = 'Assigned',
-                key = '3',
-                layout = 'plain',
-                jql = 'assignee = currentUser() AND statusCategory != Done AND status != "0. Backlog" AND type != Epic ORDER BY updated DESC',
-              },
-              {
-                name = 'Watching',
-                key = '4',
-                layout = 'plain',
-                jql = 'watcher = currentUser() AND statusCategory != Done ORDER BY updated DESC',
-              },
-              {
-                name = 'Mentions (7d)',
-                key = '5',
-                layout = 'plain',
-                jql = 'comment ~ currentUser() AND statusCategory != Done AND updated >= -7d ORDER BY updated DESC',
-              },
+        jira = {
+          views = {
+            {
+              name = 'In Progress',
+              key = '1',
+              layout = 'plain',
+              jql = 'assignee = currentUser() AND status = "2. In Progress" AND type != Epic ORDER BY updated DESC',
             },
-            bookmarks = {},
+            {
+              name = 'In Review',
+              key = '2',
+              layout = 'plain',
+              jql = 'assignee = currentUser() AND status = "3. In Review" AND type != Epic ORDER BY updated DESC',
+            },
+            {
+              name = 'Assigned',
+              key = '3',
+              layout = 'plain',
+              jql = 'assignee = currentUser() AND statusCategory != Done AND status != "0. Backlog" AND type != Epic ORDER BY updated DESC',
+            },
+            {
+              name = 'Watching',
+              key = '4',
+              layout = 'plain',
+              jql = 'watcher = currentUser() AND statusCategory != Done ORDER BY updated DESC',
+            },
+            {
+              name = 'Mentions (7d)',
+              key = '5',
+              layout = 'plain',
+              jql = 'comment ~ currentUser() AND statusCategory != Done AND updated >= -7d ORDER BY updated DESC',
+            },
           },
+          bookmarks = {},
         },
       },
     },
