@@ -1,3 +1,8 @@
+-- Built-in commenting (Neovim 0.10+). Comment.nvim crashed on 0.12 for filetypes
+-- without a treesitter parser (e.g. `.env.*`), since get_parser now returns nil.
+vim.keymap.set('n', '<leader>c', 'gcc', { remap = true, desc = 'Toggle comment line' })
+vim.keymap.set('x', '<leader>c', 'gc', { remap = true, desc = 'Toggle comment selection' })
+
 return {
   {
     'tpope/vim-obsession',
@@ -47,12 +52,4 @@ return {
   'NMAC427/guess-indent.nvim',
   'tpope/vim-endwise',
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
-  {
-    'numToStr/Comment.nvim',
-    config = function()
-      require('Comment').setup()
-      vim.keymap.set('n', '<leader>c', '<Plug>(comment_toggle_linewise_current)', { desc = 'Toggle comment line' })
-      vim.keymap.set('x', '<leader>c', '<Plug>(comment_toggle_linewise_visual)', { desc = 'Toggle comment selection' })
-    end,
-  },
 }

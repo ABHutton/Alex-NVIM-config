@@ -1,17 +1,164 @@
---- Open Atlas and ensure the detail/preview pane is visible (no upstream config for this).
+-- Domains waiting to auto-open the detail/preview pane once their list has loaded.
+---@type table<'pulls'|'issues', boolean>
+local pending_detail = {}
+
+---@param domain 'pulls'|'issues'
+---@param item table|nil a dashboard line_map entry
+local function is_detail_item(domain, item)
+  if type(item) ~= 'table' then
+    return false
+  end
+  if domain == 'pulls' then
+    return (item.kind == 'pr' or item.kind == 'pr_meta') and type(item.pr) == 'table'
+  end
+  return item.kind == 'issue' and type(item._issue) == 'table'
+end
+
+--- Wrap a dashboard's render() so a pending auto-open fires on the first render that has a
+--- PR/issue to show. Atlas loads the list asynchronously and emits no "loaded" event, and
+--- toggle_detail() is a no-op until the cursor is on an item.
+---@param domain 'pulls'|'issues'
+local function hook_detail_autoopen(domain)
+  local dashboard = require('atlas.' .. domain .. '.ui.dashboard')
+  local render = dashboard.render
+  dashboard.render = function(...)
+    render(...)
+    if not pending_detail[domain] then
+      return
+    end
+    if require('atlas.' .. domain .. '.ui.detail').is_open() then
+      pending_detail[domain] = nil
+      return
+    end
+    local navigation = require 'atlas.ui.navigation'
+    if not is_detail_item(domain, navigation.current_item()) then
+      local found = navigation.focus_item(function(item)
+        return is_detail_item(domain, item)
+      end)
+      if not found then
+        return -- still loading (or empty view); try again on the next render
+      end
+    end
+    pending_detail[domain] = nil
+    vim.schedule(function()
+      if not require('atlas.' .. domain .. '.ui.detail').is_open() then
+        dashboard.toggle_detail()
+      end
+    end)
+  end
+end
+
+--- Open Atlas with the detail/preview pane visible (no upstream config for this).
 ---@param domain 'pulls'|'issues'
 ---@param provider string
 local function open_with_panel(domain, provider)
+  pending_detail[domain] = true
   require('atlas').open(domain, provider)
-  vim.schedule(function()
-    local dashboard = require('atlas.' .. domain .. '.ui.dashboard')
-    local detail = require('atlas.' .. domain .. '.ui.detail')
-    if detail.is_open() then
-      return
-    end
-    dashboard.toggle_detail()
+end
+
+--- Run gh asynchronously; on_done(stdout|nil, err|nil) is called on the main loop.
+---@param args string[]
+---@param on_done fun(stdout: string|nil, err: string|nil)
+local function gh(args, on_done)
+  vim.system(vim.list_extend({ 'gh' }, args), { text = true }, function(res)
+    vim.schedule(function()
+      if res.code ~= 0 then
+        on_done(nil, vim.trim(res.stderr or '') ~= '' and vim.trim(res.stderr) or ('gh exited ' .. res.code))
+      else
+        on_done(res.stdout, nil)
+      end
+    end)
   end)
 end
+
+--- Atlas custom action: re-request review from people who already submitted one.
+--- Atlas's built-in "Edit reviewers" treats approved/changes-requested reviewers as already
+--- selected, so it can't re-request them. This POSTs to requested_reviewers directly.
+---@type AtlasPullsCustomAction
+local rerequest_review = {
+  id = 'rerequest_review',
+  label = 'Re-request review',
+  icon = '󰑐', -- nf-md-refresh (same glyph atlas uses for "retry")
+  run = function(pr, _, done)
+    if pr.provider ~= 'github' then
+      done(false, 'Re-request review is only implemented for GitHub')
+      return
+    end
+    local slug, number = pr.repo_full_name, tostring(pr.id)
+
+    gh({ 'pr', 'view', number, '--repo', slug, '--json', 'author,reviews,reviewRequests' }, function(out, err)
+      if err then
+        done(false, 'Failed to load reviews: ' .. err)
+        return
+      end
+      local ok, data = pcall(vim.json.decode, out)
+      if not ok or type(data) ~= 'table' then
+        done(false, 'Failed to parse reviews')
+        return
+      end
+
+      local pending = {}
+      for _, req in ipairs(data.reviewRequests or {}) do
+        if req.login then
+          pending[req.login] = true
+        end
+      end
+      local author = data.author and data.author.login
+
+      -- Latest non-pending review state per reviewer, in first-review order.
+      local latest, order = {}, {}
+      for _, review in ipairs(data.reviews or {}) do
+        local login = review.author and review.author.login
+        if login and login ~= author and not pending[login] and review.state ~= 'PENDING' then
+          if not latest[login] then
+            table.insert(order, login)
+          end
+          latest[login] = review.state
+        end
+      end
+      if #order == 0 then
+        done(true, 'No past reviewers to re-request')
+        return
+      end
+
+      local labels = { APPROVED = 'approved', CHANGES_REQUESTED = 'changes requested', COMMENTED = 'commented', DISMISSED = 'dismissed' }
+      local items = vim.tbl_map(function(login)
+        return { login = login, state = latest[login] }
+      end, order)
+
+      require('atlas.ui.picker').multi_select({
+        title = string.format('Re-request review for #%s', number),
+        items = items,
+        selected = {},
+        key = function(item)
+          return item.login
+        end,
+        format_item = function(item)
+          return string.format('@%s  (%s)', item.login, labels[item.state] or item.state:lower())
+        end,
+        on_done = function(chosen)
+          if #chosen == 0 then
+            done(true, 'Cancelled')
+            return
+          end
+          local args = { 'api', '-X', 'POST', string.format('repos/%s/pulls/%s/requested_reviewers', slug, number) }
+          local logins = {}
+          for _, item in ipairs(chosen) do
+            vim.list_extend(args, { '-f', 'reviewers[]=' .. item.login })
+            table.insert(logins, '@' .. item.login)
+          end
+          gh(args, function(_, req_err)
+            if req_err then
+              done(false, 'Re-request failed: ' .. req_err)
+            else
+              done(true, 'Re-requested review from ' .. table.concat(logins, ', '))
+            end
+          end)
+        end,
+      })
+    end)
+  end,
+}
 
 return {
   {
@@ -67,6 +214,16 @@ return {
           })
         end
       end
+
+      hook_detail_autoopen 'pulls'
+      hook_detail_autoopen 'issues'
+      -- Don't let a pending auto-open leak into a later session if Atlas closes before loading.
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'AtlasUIClosed',
+        callback = function()
+          pending_detail = {}
+        end,
+      })
     end,
     opts = {
       providers = {
@@ -83,6 +240,7 @@ return {
         },
       },
       pulls = {
+        custom_actions = { rerequest_review },
         diff = {
           open_cmd = 'AtlasDiff',
           layout = 'inline',
