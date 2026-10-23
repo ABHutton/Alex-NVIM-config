@@ -116,7 +116,6 @@ require('lazy').setup({
   --   opts = {},
   -- },
   --  require 'kickstart.plugins.debug',
-  require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.gitsigns',
 
