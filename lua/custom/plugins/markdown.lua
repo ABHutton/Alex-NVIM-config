@@ -11,34 +11,17 @@ return {
     opts = {},
   },
   {
-    'toppair/peek.nvim',
-    ft = 'markdown',
-    build = 'deno task --quiet build:fast',
+    'obsidian-nvim/obsidian.nvim',
+    event = { 'BufReadPre ' .. vim.fn.expand '~' .. '/dev/Obsidian/*.md', 'BufNewFile ' .. vim.fn.expand '~' .. '/dev/Obsidian/*.md' },
     keys = {
-      {
-        '<leader>op',
-        function()
-          local peek = require 'peek'
-          if peek.is_open() then
-            peek.close()
-          else
-            peek.open()
-          end
-        end,
-        desc = 'Markdown [P]review',
-      },
+      { '<leader>op', '<cmd>Obsidian open<cr>', desc = 'Open note in Obsidian ([P]review)' },
     },
     opts = {
-      auto_load = false,
-      close_on_bdelete = true,
-      syntax = true,
-      theme = 'dark',
-      update_on_change = true,
-      app = 'browser',
-      filetype = { 'markdown' },
+      legacy_commands = false,
+      workspaces = {
+        { name = 'Obsidian', path = '~/dev/Obsidian' },
+      },
+      frontmatter = { enabled = false },
     },
-    config = function(_, opts)
-      require('peek').setup(opts)
-    end,
   },
 }

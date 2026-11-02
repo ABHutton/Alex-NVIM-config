@@ -100,22 +100,11 @@ Mason installs the `ruby_lsp` binary, but you still need a Ruby runtime on the s
 sudo apt install openjdk-17-jdk   # or your preferred version
 ```
 
-### Markdown preview (peek.nvim)
+### Markdown preview (obsidian.nvim)
 
 | Dependency | Why |
 |------------|-----|
-| [Deno](https://deno.land/) | Plugin build: `deno task --quiet build:fast` |
-| webview or a browser | Preview window (`app = 'webview'` in `lua/custom/plugins/markdown.lua`) |
-
-Install Deno:
-
-```sh
-curl -fsSL https://deno.land/install.sh | sh
-```
-
-Ensure `deno` is on your `PATH`, then run `:Lazy` so peek.nvim can build.
-
-To use a browser instead of webview, change `app` in `lua/custom/plugins/markdown.lua` (e.g. `app = 'browser'`).
+| [Obsidian](https://obsidian.md/) app | `<leader>op` opens the current note in Obsidian (vault: `~/dev/Obsidian`) |
 
 ### Cursor Agent (cursor-agent.nvim)
 
@@ -202,7 +191,6 @@ From a shell:
 git --version
 rg --version
 fdfind --version   # or fd --version
-deno --version     # if using peek
 cursor-agent --help   # if using Cursor Agent integration
 gh --version          # if using Atlas GitHub integration
 gh auth status        # if using Atlas GitHub integration
