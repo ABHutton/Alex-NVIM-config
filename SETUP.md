@@ -100,11 +100,11 @@ Mason installs the `ruby_lsp` binary, but you still need a Ruby runtime on the s
 sudo apt install openjdk-17-jdk   # or your preferred version
 ```
 
-### Markdown preview (obsidian.nvim)
+### Markdown preview (live-preview.nvim)
 
 | Dependency | Why |
 |------------|-----|
-| [Obsidian](https://obsidian.md/) app | `<leader>op` opens the current note in Obsidian (vault: `~/dev/Obsidian`) |
+| A web browser | `<leader>op` toggles a live preview (`:LivePreview start` / `close`) in the default browser; no build step |
 
 ### Cursor Agent (cursor-agent.nvim)
 
