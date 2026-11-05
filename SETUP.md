@@ -8,7 +8,7 @@ This document lists everything you need on a **new machine** beyond cloning this
 2. Install any [optional stacks](#optional-by-feature) you use (Ruby, Java, markdown preview, Cursor Agent, Atlas / GitHub CLI + Jira, LazyGit).
 3. Clone this config into `~/.config/nvim` (or `$XDG_CONFIG_HOME/nvim`).
 4. Start Neovim and run `:Lazy` — wait for plugins and Mason tools to finish installing.
-5. Run `:checkhealth kickstart`, `:checkhealth snacks`, and `:checkhealth atlas` (if using Atlas).
+5. Run `:checkhealth kickstart`, `:checkhealth nvim-treesitter`, `:checkhealth snacks`, and `:checkhealth atlas` (if using Atlas).
 
 ---
 
@@ -16,18 +16,20 @@ This document lists everything you need on a **new machine** beyond cloning this
 
 | Dependency | Why |
 |------------|-----|
-| [Neovim](https://neovim.io/) ≥ 0.10 | Required by `kickstart/health.lua` |
+| [Neovim](https://neovim.io/) ≥ 0.12 | Treesitter parser manager (`nvim-treesitter` `main` branch) |
 | `git` | Plugin installs, gitsigns, project roots |
 | `make` | LuaSnip optional build (`install_jsregexp`) on non-Windows |
 | `unzip` | Kickstart health check |
-| C compiler (`gcc`) | Some native plugin builds (see kickstart README) |
+| C compiler (`gcc`) | Native plugin and Treesitter parser builds |
+| `curl` + `tar` | Download Treesitter parser sources |
+| [`tree-sitter-cli`](https://github.com/tree-sitter/tree-sitter) (≥ 0.26) | Install/update Treesitter parsers (`:TSInstall`, auto-install on startup) |
 | [ripgrep](https://github.com/BurntSushi/ripgrep) (`rg`) | Snacks picker: grep, live grep, buffer search |
 | [fd](https://github.com/sharkdp/fd) or `fdfind` | Snacks picker: files, explorer, projects. On Debian/Ubuntu the package is `fd-find` and the binary is `fdfind` |
 
 ### Ubuntu / Debian example
 
 ```sh
-sudo apt install neovim git make gcc ripgrep fd-find unzip
+sudo apt install neovim git make gcc ripgrep fd-find unzip curl tar tree-sitter-cli
 ```
 
 ### Clipboard
@@ -49,7 +51,9 @@ A [Nerd Font](https://www.nerdfonts.com/) is assumed (`vim.g.have_nerd_font = tr
 
 ---
 
-## Installed automatically by Neovim (Mason)
+## Installed automatically by Neovim
+
+### Mason (LSP tools)
 
 On first use, [mason-tool-installer](lua/custom/plugins/lsp.lua) installs:
 
@@ -60,9 +64,19 @@ On first use, [mason-tool-installer](lua/custom/plugins/lsp.lua) installs:
 | `stylua` | Lua formatting (conform.nvim) |
 | `markdownlint` | Markdown linting (nvim-lint) |
 
-[Treesitter](lua/custom/plugins/treesitter.lua) grammars are installed via the plugin build (`:TSUpdate`): bash, c, diff, html, lua, luadoc, markdown, query, vim, vimdoc, ruby.
+### Treesitter parsers
 
-No manual install needed for these beyond starting Neovim and letting Mason finish.
+[nvim-treesitter](lua/custom/plugins/treesitter.lua) (Neovim 0.12+: `main` branch) installs these parsers in the **background** on startup if they are missing:
+
+`bash`, `c`, `diff`, `html`, `lua`, `luadoc`, `markdown`, `markdown_inline`, `query`, `sql`, `vim`, `vimdoc`, `ruby`
+
+- Parsers live in `~/.local/share/nvim/site/parser/` (not committed to git).
+- `:TSUpdate` (plugin build step) refreshes installed parsers when the plugin updates.
+- Sticky function context at the top of the window: [nvim-treesitter-context](https://github.com/nvim-treesitter/nvim-treesitter-context) (`:TSContext toggle`).
+
+Requires `curl`, `tar`, `tree-sitter-cli`, and `gcc` on the system (see [core dependencies](#core-required)).
+
+No manual `:TSInstall` needed on a normal first boot, but retry failed downloads with e.g. `:TSInstall sql`.
 
 ---
 
@@ -86,22 +100,11 @@ Mason installs the `ruby_lsp` binary, but you still need a Ruby runtime on the s
 sudo apt install openjdk-17-jdk   # or your preferred version
 ```
 
-### Markdown preview (peek.nvim)
+### Markdown preview (live-preview.nvim)
 
 | Dependency | Why |
 |------------|-----|
-| [Deno](https://deno.land/) | Plugin build: `deno task --quiet build:fast` |
-| webview or a browser | Preview window (`app = 'webview'` in `lua/custom/plugins/markdown.lua`) |
-
-Install Deno:
-
-```sh
-curl -fsSL https://deno.land/install.sh | sh
-```
-
-Ensure `deno` is on your `PATH`, then run `:Lazy` so peek.nvim can build.
-
-To use a browser instead of webview, change `app` in `lua/custom/plugins/markdown.lua` (e.g. `app = 'browser'`).
+| A web browser | `<leader>op` toggles a live preview (`:LivePreview start` / `close`) in the default browser; no build step |
 
 ### Cursor Agent (cursor-agent.nvim)
 
@@ -175,9 +178,11 @@ Inside Neovim:
 
 ```vim
 :checkhealth kickstart
+:checkhealth nvim-treesitter
 :checkhealth snacks
 :checkhealth atlas
 :Mason
+:lua vim.print(require('nvim-treesitter').get_installed())
 ```
 
 From a shell:
@@ -186,7 +191,6 @@ From a shell:
 git --version
 rg --version
 fdfind --version   # or fd --version
-deno --version     # if using peek
 cursor-agent --help   # if using Cursor Agent integration
 gh --version          # if using Atlas GitHub integration
 gh auth status        # if using Atlas GitHub integration
@@ -200,7 +204,7 @@ lazygit --version     # if using LazyGit integration
 
 | File | Contents |
 |------|----------|
-| `README.md` | Upstream kickstart.nvim documentation and install recipes |
+| `README.md` | Overview of this config and quick start |
 | `init.lua` | Core options and keymaps |
 | `.env.example` | Template for local Atlas/Jira secrets (copy to `.env`) |
 | `lua/custom/plugins/` | Custom plugin configuration |

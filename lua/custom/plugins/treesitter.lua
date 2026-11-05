@@ -1,14 +1,32 @@
+local ensure_parsers = {
+  'bash',
+  'c',
+  'diff',
+  'html',
+  'lua',
+  'luadoc',
+  'markdown',
+  'markdown_inline',
+  'query',
+  'sql',
+  'vim',
+  'vimdoc',
+  'ruby',
+}
+
+local is_modern = vim.fn.has 'nvim-0.12' == 1
+
 return {
   {
     'nvim-treesitter/nvim-treesitter',
-    -- Only load if Neovim is older than 0.12
-    cond = function()
-      return vim.fn.has 'nvim-0.12' == 0
-    end,
+    branch = is_modern and 'main' or 'master',
+    lazy = false,
     build = ':TSUpdate',
-    main = 'nvim-treesitter.configs',
-    opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'sql', 'vim', 'vimdoc', 'ruby' },
+    main = is_modern and nil or 'nvim-treesitter.configs',
+    opts = is_modern and {
+      install_dir = vim.fn.stdpath 'data' .. '/site',
+    } or {
+      ensure_installed = ensure_parsers,
       auto_install = true,
       highlight = {
         enable = true,
@@ -16,11 +34,28 @@ return {
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
+    config = is_modern
+        and function(_, opts)
+          local ts = require 'nvim-treesitter'
+          ts.setup(opts)
+
+          local missing = vim.tbl_filter(function(lang)
+            return not vim.tbl_contains(ts.get_installed(), lang)
+          end, ensure_parsers)
+
+          -- Install missing parsers in the background. Never :wait() here — that
+          -- blocks the UI (and a failing download like sql can freeze Neovim).
+          if #missing > 0 then
+            vim.defer_fn(function()
+              ts.install(missing)
+            end, 1000)
+          end
+        end
+      or nil,
   },
   {
     'nvim-treesitter/nvim-treesitter-context',
-    -- Dynamically set the dependency so it doesn't try to load the archived plugin in 0.12+
-    dependencies = vim.fn.has 'nvim-0.12' == 0 and { 'nvim-treesitter/nvim-treesitter' } or {},
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
     opts = {
       enable = true,
       max_lines = 10,

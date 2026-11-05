@@ -89,7 +89,7 @@ return {
           if client and client.name == 'ruby_lsp' and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_codeLens, event.buf) then
             local refresh_index = function()
               vim.notify('Reindexing Buffer', vim.log.levels.INFO, { title = 'ruby_lsp' })
-              vim.lsp.codelens.refresh { bufnr = event.buf }
+              vim.lsp.codelens.enable(true, { bufnr = event.buf })
             end
             vim.api.nvim_create_autocmd({ 'BufWritePost', 'InsertLeave' }, {
               buffer = event.buf,
@@ -154,11 +154,32 @@ return {
         return result
       end
 
+      --- Mason's ruby-lsp shim uses `/usr/bin/ruby`, which lacks bundler on this machine.
+      --- Run the gem with the Ruby runtime Neovim sees (rubies/chruby/mise).
+      ---@return string[]|nil
+      local function mason_ruby_lsp_cmd()
+        local ruby = vim.fn.exepath('ruby')
+        if ruby == '' then
+          return nil
+        end
+        local exe = vim.fn.glob(vim.fs.joinpath(vim.fn.stdpath('data'), 'mason/packages/ruby-lsp/gems/ruby-lsp-*/exe/ruby-lsp'), false, true)[1]
+        if not exe or exe == '' then
+          return nil
+        end
+        return { ruby, exe }
+      end
+
       local capabilities = require('blink.cmp').get_lsp_capabilities()
 
       local servers = {
         ruby_lsp = {
-          cmd = { 'ruby-lsp' },
+          cmd = function(dispatchers, config)
+            return vim.lsp.rpc.start(
+              mason_ruby_lsp_cmd() or { 'ruby-lsp' },
+              dispatchers,
+              config and config.root_dir and { cwd = config.cmd_cwd or config.root_dir }
+            )
+          end,
           filetypes = { 'ruby', 'eruby' },
           init_options = {
             formatter = 'auto',
@@ -175,26 +196,25 @@ return {
           },
         },
       }
+
+      for server_name, server in pairs(servers) do
+        server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+        vim.lsp.config(server_name, server)
+      end
+
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua',
-        'markdownlint',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
         ensure_installed = {},
         automatic_installation = false,
-        -- rubocop LSP duplicates ruby_lsp for grd/grr; keep RuboCop diagnostics via ruby_lsp.
         automatic_enable = {
-          exclude = { 'rubocop' },
-        },
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end,
+          -- rubocop LSP duplicates ruby_lsp for grd/grr; keep RuboCop diagnostics via ruby_lsp.
+          -- stylua is a formatter (conform.nvim), not a language server for this config.
+          exclude = { 'rubocop', 'stylua' },
         },
       }
     end,

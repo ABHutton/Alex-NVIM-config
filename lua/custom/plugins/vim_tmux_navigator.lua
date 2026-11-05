@@ -8,6 +8,11 @@ return {
       vim.g.tmux_navigator_no_mappings = 1
     end,
     config = function()
+      -- Inside tuios, tuios_nvim_navigator.lua owns <C-h/j/k/l>.
+      if vim.env.TUIOS_ENV == '1' then
+        return
+      end
+
       local matches = vim.fn.glob(
         vim.fn.expand '~/.config/herdr/plugins/github/vim-herdr-navigation-*/editor/nvim.lua',
         false,

@@ -10,13 +10,17 @@ return {
       {
         '<leader>vb',
         function()
-          vim.fn['test#strategy#vimux'] 'brake'
+          vim.fn['test#shell']('brake', vim.g['test#strategy'])
         end,
         desc = 'Run brake',
       },
     },
     config = function()
-      vim.g['test#strategy'] = 'vimux'
+      vim.g['test#custom_strategies'] = {
+        herdr = require('custom.herdr_test').strategy,
+      }
+      -- vimux hard-requires $TMUX; herdr replaced tmux as the multiplexer here.
+      vim.g['test#strategy'] = vim.env.HERDR_ENV and 'herdr' or 'vimux'
     end,
   },
 }

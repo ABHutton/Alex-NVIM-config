@@ -21,6 +21,27 @@ local function dashboard_buffers()
   end, api.nvim_list_bufs())
 end
 
+--- Windows currently showing the Snacks startup dashboard.
+function M.dashboard_wins()
+  local wins = {}
+  for _, win in ipairs(api.nvim_tabpage_list_wins(0)) do
+    local buf = api.nvim_win_get_buf(win)
+    if api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == 'snacks_dashboard' then
+      wins[#wins + 1] = win
+    end
+  end
+  return wins
+end
+
+--- Replace the dashboard with an empty editable buffer so other UIs (e.g. DBUI)
+--- can reuse that window instead of opening another split.
+function M.dismiss_dashboard()
+  for _, win in ipairs(M.dashboard_wins()) do
+    api.nvim_set_current_win(win)
+    vim.cmd 'enew'
+  end
+end
+
 --- Source the session file. Obsession's own session file sets `g:this_obsession`,
 --- so tracking resumes on its own once the file has been sourced.
 function M.restore(dir)
