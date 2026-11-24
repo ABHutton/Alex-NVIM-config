@@ -126,7 +126,9 @@ sudo apt install postgresql-client
 
 | Dependency | Why |
 |------------|-----|
-| [herdr](https://github.com/herdrdev/herdr) **or** tmux | Where tests run. Inside herdr (`$HERDR_ENV` set) a custom strategy ([`lua/custom/herdr_test.lua`](lua/custom/herdr_test.lua)) runs them in a herdr pane; otherwise vimux is used, which needs a tmux session |
+| tuios, [herdr](https://github.com/herdrdev/herdr) **or** tmux | Where tests run, picked in this order: inside tuios (`$TUIOS_ENV=1`) [`lua/custom/tuios_test.lua`](lua/custom/tuios_test.lua) splits a `vim-test` pane below Neovim; inside herdr (`$HERDR_ENV` set) [`lua/custom/herdr_test.lua`](lua/custom/herdr_test.lua) splits a herdr pane; otherwise vimux is used, which needs a tmux session |
+
+The tuios split needs an attached client with tiling on, and comes out 50/50 since tuios has no split-size option. Otherwise it opens an unfocused `vim-test` window instead. The pane is reused for later runs, and the strategy `cd`s it to Neovim's working directory whenever that changes.
 
 `<leader>vn` nearest test, `<leader>vf` test file, `<leader>vb` run `brake`.
 
@@ -226,7 +228,7 @@ git --version
 rg --version
 fdfind --version   # or fd --version
 psql --version        # if using vim-dadbod with Postgres
-herdr --version       # if running tests via herdr (or: tmux -V for vimux)
+herdr --version       # if running tests via herdr (or: tuios --version / tmux -V)
 gh --version          # if using Atlas GitHub integration
 gh auth status        # if using Atlas GitHub integration
 test -f ~/.config/nvim/.env   # if using Atlas Jira

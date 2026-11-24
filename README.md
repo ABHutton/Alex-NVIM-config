@@ -15,7 +15,7 @@ Personal configuration based on [kickstart.nvim](https://github.com/nvim-lua/kic
 | Git / GitHub / Jira | [gitsigns](lua/custom/plugins/git.lua), [Atlas](lua/custom/plugins/atlas.lua) | `<leader>g…` Atlas pulls, Jira, PRs |
 | Markdown | [render-markdown, live-preview, obsidian.nvim](lua/custom/plugins/markdown.lua) | `<leader>op` browser preview; Obsidian vault at `~/dev/Obsidian` |
 | Databases | [vim-dadbod + UI](lua/custom/plugins/dadbod.lua) | `<leader>db` toggle UI |
-| Tests | [vim-test](lua/custom/plugins/vim_test.lua) | Runs in a herdr pane, or tmux via vimux |
+| Tests | [vim-test](lua/custom/plugins/vim_test.lua) | Runs in a tuios or herdr pane, or tmux via vimux |
 | Pane navigation | [tuios-nvim-navigator](lua/custom/plugins/tuios_nvim_navigator.lua), [vim-tmux-navigator / herdr](lua/custom/plugins/vim_tmux_navigator.lua) | `<C-h/j/k/l>` across splits and multiplexer panes |
 | Quickfix | [quicker.nvim](lua/custom/plugins/quicker.lua) | `<leader>q` quickfix, `<leader>l` loclist, `<leader>xd` diagnostics |
 | Editing | [multicursor.nvim](lua/custom/plugins/multicursor.lua), [autopairs](lua/kickstart/plugins/autopairs.lua) | `<leader>m…` / `<C-q>` multi-cursor |
