@@ -5,7 +5,7 @@ This document lists everything you need on a **new machine** beyond cloning this
 ## Quick start
 
 1. Install the [core dependencies](#core-required).
-2. Install any [optional stacks](#optional-by-feature) you use (Ruby, Java, markdown preview, Cursor Agent, Atlas / GitHub CLI + Jira, LazyGit).
+2. Install any [optional stacks](#optional-by-feature) you use (Ruby, Java, Markdown / Obsidian, databases, tests, pane navigation, Atlas / GitHub CLI + Jira, LazyGit, Omarchy theme).
 3. Clone this config into `~/.config/nvim` (or `$XDG_CONFIG_HOME/nvim`).
 4. Start Neovim and run `:Lazy` — wait for plugins and Mason tools to finish installing.
 5. Run `:checkhealth kickstart`, `:checkhealth nvim-treesitter`, `:checkhealth snacks`, and `:checkhealth atlas` (if using Atlas).
@@ -16,7 +16,7 @@ This document lists everything you need on a **new machine** beyond cloning this
 
 | Dependency | Why |
 |------------|-----|
-| [Neovim](https://neovim.io/) ≥ 0.12 | Treesitter parser manager (`nvim-treesitter` `main` branch) |
+| [Neovim](https://neovim.io/) ≥ 0.12 (recommended) | Treesitter parser manager (`nvim-treesitter` `main` branch). Older versions fall back to the legacy `master` branch |
 | `git` | Plugin installs, gitsigns, project roots |
 | `make` | LuaSnip optional build (`install_jsregexp`) on non-Windows |
 | `unzip` | Kickstart health check |
@@ -62,7 +62,8 @@ On first use, [mason-tool-installer](lua/custom/plugins/lsp.lua) installs:
 | `lua_ls` | Lua LSP |
 | `ruby_lsp` | Ruby LSP |
 | `stylua` | Lua formatting (conform.nvim) |
-| `markdownlint` | Markdown linting (nvim-lint) |
+
+nvim-java manages its own `jdtls` install (see [Java](#java)).
 
 ### Treesitter parsers
 
@@ -100,19 +101,52 @@ Mason installs the `ruby_lsp` binary, but you still need a Ruby runtime on the s
 sudo apt install openjdk-17-jdk   # or your preferred version
 ```
 
-### Markdown preview (live-preview.nvim)
+### Markdown (render-markdown, live-preview, Obsidian)
 
 | Dependency | Why |
 |------------|-----|
 | A web browser | `<leader>op` toggles a live preview (`:LivePreview start` / `close`) in the default browser; no build step |
+| Obsidian vault at `~/dev/Obsidian` | [obsidian.nvim](lua/custom/plugins/markdown.lua) only loads for `.md` files under that path; change `workspaces` if your vault lives elsewhere |
 
-### Cursor Agent (cursor-agent.nvim)
+[render-markdown.nvim](https://github.com/MeanderingProgrammer/render-markdown.nvim) renders Markdown in the buffer and needs nothing extra beyond the `markdown` / `markdown_inline` Treesitter parsers.
+
+### Databases (vim-dadbod)
 
 | Dependency | Why |
 |------------|-----|
-| `cursor-agent` CLI | `<leader>aa`, `<leader>as`, `<leader>ab`, `<leader>ap` |
+| A database CLI client, e.g. `psql` | vim-dadbod shells out to it to run queries |
 
-Install per [Cursor](https://cursor.com/) documentation. The executable must be on `PATH` as `cursor-agent` (or set `cmd` in `require('cursor-agent').setup({ ... })`).
+`<leader>db` toggles the DB UI, `<leader>da` adds a connection, `<leader>df` finds a query buffer. Predefined connections live in `vim.g.dbs` in [`lua/custom/plugins/dadbod.lua`](lua/custom/plugins/dadbod.lua) (currently local `nspack_gr` / `nspack_test` Postgres databases). Saved queries go to `stdpath('data')/dadbod_ui`.
+
+```sh
+sudo apt install postgresql-client
+```
+
+### Tests (vim-test)
+
+| Dependency | Why |
+|------------|-----|
+| [herdr](https://github.com/herdrdev/herdr) **or** tmux | Where tests run. Inside herdr (`$HERDR_ENV` set) a custom strategy ([`lua/custom/herdr_test.lua`](lua/custom/herdr_test.lua)) runs them in a herdr pane; otherwise vimux is used, which needs a tmux session |
+
+`<leader>vn` nearest test, `<leader>vf` test file, `<leader>vb` run `brake`.
+
+### Pane navigation (`<C-h/j/k/l>`)
+
+The same keys move between Neovim splits and the surrounding terminal multiplexer. Which plugin owns them depends on the environment:
+
+| Environment | Handled by |
+|-------------|------------|
+| tuios (`$TUIOS_ENV=1`) | [tuios-nvim-navigator](lua/custom/plugins/tuios_nvim_navigator.lua). Keys must match `appearance.nvim_navigation` / `terminal_focus_*` in `~/.config/tuios/config.toml` |
+| herdr navigation plugin installed | `~/.config/herdr/plugins/github/vim-herdr-navigation-*/editor/nvim.lua` is loaded by [vim_tmux_navigator.lua](lua/custom/plugins/vim_tmux_navigator.lua) |
+| Anything else | Plain vim-tmux-navigator mappings (needs tmux to cross pane boundaries) |
+
+### Omarchy theme
+
+| Dependency | Why |
+|------------|-----|
+| [Omarchy](https://omarchy.org/) (optional) | The colourscheme follows the current Omarchy theme |
+
+[`lua/custom/omarchy-theme.lua`](lua/custom/omarchy-theme.lua) reads `~/.local/state/omarchy/current/theme/neovim.lua` (and `theme.name`) and installs/applies the matching colourscheme plugin. It re-applies on `:Lazy reload`. Without Omarchy, or if that file is missing, it falls back to Tokyo Night. Transparency is applied from [`plugin/after/transparency.lua`](plugin/after/transparency.lua).
 
 ### Atlas (atlas.nvim)
 
@@ -191,7 +225,8 @@ From a shell:
 git --version
 rg --version
 fdfind --version   # or fd --version
-cursor-agent --help   # if using Cursor Agent integration
+psql --version        # if using vim-dadbod with Postgres
+herdr --version       # if running tests via herdr (or: tmux -V for vimux)
 gh --version          # if using Atlas GitHub integration
 gh auth status        # if using Atlas GitHub integration
 test -f ~/.config/nvim/.env   # if using Atlas Jira
