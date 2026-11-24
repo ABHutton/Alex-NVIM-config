@@ -6,7 +6,7 @@ This document lists everything you need on a **new machine** beyond cloning this
 
 1. Install the [core dependencies](#core-required).
 2. Install any [optional stacks](#optional-by-feature) you use (Ruby, Java, Markdown / Obsidian, databases, tests, pane navigation, Atlas / GitHub CLI + Jira, LazyGit, Omarchy theme).
-3. Clone this config into `~/.config/nvim` (or `$XDG_CONFIG_HOME/nvim`).
+3. Clone this config into `~/.config/nvim` (or `$XDG_CONFIG_HOME/nvim`). On Omarchy, move its LazyVim config aside first. See [Omarchy](#omarchy).
 4. Start Neovim and run `:Lazy` — wait for plugins and Mason tools to finish installing.
 5. Run `:checkhealth kickstart`, `:checkhealth nvim-treesitter`, `:checkhealth snacks`, and `:checkhealth atlas` (if using Atlas).
 
@@ -32,6 +32,32 @@ This document lists everything you need on a **new machine** beyond cloning this
 sudo apt install neovim git make gcc ripgrep fd-find unzip curl tar tree-sitter-cli
 ```
 
+### Arch Linux example
+
+```sh
+sudo pacman -S --needed neovim git base-devel ripgrep fd unzip curl tar tree-sitter-cli
+```
+
+`base-devel` provides `make` and `gcc`. On Arch the `fd` package and binary are both `fd`.
+
+### Omarchy
+
+Omarchy already installs every core dependency: `git`, `base-devel`, `ripgrep`, `fd`, `unzip`, `tree-sitter-cli`, `curl`, `tar`, and Neovim (pulled in by `omarchy-nvim`). It also installs several optional ones: `wl-clipboard`, a Nerd Font (`ttf-jetbrains-mono-nerd-basic`), `lazygit`, `ruby`, `tmux`, and `postgresql-libs`, which provides `psql`. The only optional dependencies left are `gh` (Atlas) and a JDK (Java).
+
+Omarchy also seeds `~/.config/nvim` with its own LazyVim config and caches that config's plugins in `~/.local/share/nvim`. Move both out of the way before cloning, or the two configs' plugins and lockfile clash:
+
+```sh
+for d in ~/.config/nvim ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim; do
+  [ -e "$d" ] && mv "$d" "$d.omarchy.bak"
+done
+git clone git@codeberg.org:abhutton/Alex-NVIM-config.git ~/.config/nvim
+```
+
+Afterwards:
+
+- Do **not** run `omarchy-nvim-refresh`. It backs up `~/.config/nvim` and replaces it with the LazyVim defaults. (`omarchy-nvim-setup` is safe; it only fills in a missing config.)
+- Omarchy migrations occasionally write into `~/.config/nvim`, e.g. `lua/config/remote_clipboard.lua`. This config doesn't load them. If `git status` shows untracked files under `lua/config/` after an Omarchy update, delete them.
+
 ### Clipboard
 
 `init.lua` sets `clipboard=unnamedplus`. On Linux you typically need one of:
@@ -40,14 +66,22 @@ sudo apt install neovim git make gcc ripgrep fd-find unzip curl tar tree-sitter-
 - `xclip` or `xsel` (X11)
 
 ```sh
+# Ubuntu / Debian
 sudo apt install wl-clipboard   # Wayland
-# or
 sudo apt install xclip          # X11
+
+# Arch
+sudo pacman -S wl-clipboard     # Wayland (Hyprland, Sway, GNOME/KDE on Wayland)
+sudo pacman -S xclip            # X11
 ```
+
+**Omarchy:** nothing to do. It runs Hyprland on Wayland and installs `wl-clipboard` by default, so Neovim picks `wl-copy` / `wl-paste` automatically.
+
+Check with `:checkhealth provider`: the Clipboard section should name `wl-copy` (or `xclip`).
 
 ### Font (recommended)
 
-A [Nerd Font](https://www.nerdfonts.com/) is assumed (`vim.g.have_nerd_font = true` in `init.lua`).
+A [Nerd Font](https://www.nerdfonts.com/) is assumed (`vim.g.have_nerd_font = true` in `init.lua`). On Arch: `sudo pacman -S ttf-jetbrains-mono-nerd`. Omarchy ships one already.
 
 ---
 
@@ -99,6 +133,7 @@ Mason installs the `ruby_lsp` binary, but you still need a Ruby runtime on the s
 
 ```sh
 sudo apt install openjdk-17-jdk   # or your preferred version
+sudo pacman -S jdk-openjdk        # Arch / Omarchy (latest OpenJDK)
 ```
 
 ### Markdown (render-markdown, live-preview, Obsidian)
@@ -120,6 +155,7 @@ sudo apt install openjdk-17-jdk   # or your preferred version
 
 ```sh
 sudo apt install postgresql-client
+sudo pacman -S postgresql-libs    # Arch (provides psql); already on Omarchy
 ```
 
 ### Tests (vim-test)
@@ -160,6 +196,7 @@ The same keys move between Neovim splits and the surrounding terminal multiplexe
 
 ```sh
 sudo apt install gh curl
+sudo pacman -S github-cli         # Arch / Omarchy
 # or see https://github.com/cli/cli#installation
 ```
 
@@ -195,6 +232,7 @@ PR review/checkout uses `pulls.repo_config.paths` in `lua/custom/plugins/atlas.l
 
 ```sh
 sudo apt install lazygit
+sudo pacman -S lazygit            # Arch; already on Omarchy
 # or: go install github.com/jesseduffield/lazygit@latest
 ```
 
